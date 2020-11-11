@@ -202,8 +202,16 @@ if __name__ == '__main__':
 
     Print.prettify(task)
 
-# todo: add comment
+    comment = input("Введите комментарий: ")
+    if comment:
+        response = b24.post('task.commentitem.add',
+                           [task["task"]["id"], {'POST_MESSAGE': comment}], verbose=True)
+        Print.prettify(response)
+
+    
+
 # todo: set task status
 #       close task
 #       start/stop task
+#       deffered
 # todo: thefuck y n buttons

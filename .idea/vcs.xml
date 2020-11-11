@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../bitrix24_api" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../bitrix24_notify_users" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../bitrix24_report_today_orders" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../proxy-checker-python" vcs="Git" />
+  </component>
+</project>

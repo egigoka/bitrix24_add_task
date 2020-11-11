@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/bitrix24_add_task.iml" filepath="$PROJECT_DIR$/.idea/bitrix24_add_task.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../bitrix24_api/.idea/bitrix24_api.iml" filepath="$PROJECT_DIR$/../bitrix24_api/.idea/bitrix24_api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../bitrix24_notify_users/.idea/bitrix24_notify_users.iml" filepath="$PROJECT_DIR$/../bitrix24_notify_users/.idea/bitrix24_notify_users.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../bitrix24_report_today_orders/.idea/bitrix24_report_today_orders.iml" filepath="$PROJECT_DIR$/../bitrix24_report_today_orders/.idea/bitrix24_report_today_orders.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../commands/.idea/commands.iml" filepath="$PROJECT_DIR$/../commands/.idea/commands.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../proxy-checker-python/.idea/proxy-checker-python.iml" filepath="$PROJECT_DIR$/../proxy-checker-python/.idea/proxy-checker-python.iml" />
+    </modules>
+  </component>
+</project>
