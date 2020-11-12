@@ -3,7 +3,6 @@ from typing import Any, Union
 from bitrix24api import BitrixRESTAPI
 from commands import *
 
-
 # region development functions (temp)
 def print_all_task_fields():
     fields = b24.smart_get("tasks.task.getfields")['fields']
@@ -12,12 +11,7 @@ def print_all_task_fields():
         print(name)
         for name_desc, value in desc.items():
             print(f"\t{name_desc}: {value}")
-
-
-def change_responsible(task_id, new_responsible_id):
-    return b24.get("tasks.task.update", {"taskId": task_id, 'FIELDS': {"RESPONSIBLE_ID": new_responsible_id}})
 # endregion
-
 
 # region funcs tasks
 def create_task(title, created_by, responsible_id, project_id, description):
@@ -81,6 +75,8 @@ def change_task_stage(task_obj, new_stage_name, verbose=False):
             print(f"task {task_id} moved to stage: {new_stage_id} Выполняется")
 
 
+def task_change_responsible(task_id, new_responsible_id):
+    return b24.get("tasks.task.update", {"taskId": task_id, 'FIELDS': {"RESPONSIBLE_ID": new_responsible_id}})
 # endregion
 
 # region enums caching
@@ -163,6 +159,22 @@ class BitrixObjects:
 
         return cached_result
 
+    def get_sorted_usage(self):
+        usage = self.get_usage()
+        sorted_usage = {k: v for k, v in sorted(usage.items(),
+                                                key=lambda item: item[1],
+                                                reverse=True)}
+        return sorted_usage
+
+    def get_all_except_used(self):
+        all = self.get_all()
+        usage = self.get_usage()
+
+        for object_id, last_used_timestamp in usage.items():
+            all.pop(object_id)
+
+        return all
+
     def save_selection(self, id):
         usage = self.get_usage()
         id = int(id)
@@ -177,16 +189,12 @@ class BitrixObjects:
             self.save_selection(selected_id)
             return objects[selected_id]
         else:
-            usage = self.get_usage()
+            usage = self.get_sorted_usage()
             enumerated_dict = {}
             cnt = 0
 
-            sorted_usage = {k: v for k, v in sorted(usage.items(),
-                                                    key=lambda item: item[1],
-                                                    reverse=True)}
-
             sorted_objects = []
-            for object_id, last_used_timestamp in sorted_usage.items():
+            for object_id, last_used_timestamp in usage.items():
                 sorted_objects.append(objects.pop(object_id))
 
             sorted_objects += List.sort_by(list(objects.values()),
@@ -219,69 +227,33 @@ class BitrixObjects:
 
             return selected_object_info
 
-
 # region init
 hook = "https://kurganmk.bitrix24.ru/rest/11/tbjn4luh6u1b6irw/"
 
 b24 = BitrixRESTAPI(hook)
 
+created_by = BitrixObjects(cache_objects_name=CachesNames.created_by.value,
+                           cache_usage_name=CachesNames.created_by_usage.value,
+                           cache_objects_update_call="user.get",
+                           cache_objects_update_args={"filter": {"ACTIVE": True}},
+                           interactive_selection_sort_by=["LAST_NAME", "NAME"],
+                           interactive_selection_cast_to=[str])
+
+responsible = BitrixObjects(cache_objects_name=CachesNames.responsible.value,
+                            cache_usage_name=CachesNames.responsible_usage.value,
+                            cache_objects_update_call="user.get",
+                            cache_objects_update_args={"filter": {"ACTIVE": True}},
+                            interactive_selection_sort_by=["LAST_NAME", "NAME"],
+                            interactive_selection_cast_to=[str])
+
+projects = BitrixObjects(cache_objects_name=CachesNames.projects.value,
+                         cache_usage_name=CachesNames.projects_usage.value,
+                         cache_objects_update_call="sonet_group.get",
+                         cache_objects_update_args={"filter": {"ACTIVE": True}},
+                         interactive_selection_sort_by=["NAME"],
+                         interactive_selection_cast_to=[])
 # endregion
 
 # region args
 invalidate_cache = "--no-cache" in OS.args
 # endregion
-
-if __name__ == '__main__':
-    created_by = BitrixObjects(cache_objects_name=CachesNames.created_by.value,
-                          cache_usage_name=CachesNames.created_by_usage.value,
-                          cache_objects_update_call="user.get",
-                          cache_objects_update_args={"filter": {"ACTIVE": True}},
-                          interactive_selection_sort_by=["LAST_NAME", "NAME"],
-                          interactive_selection_cast_to=[str])
-
-    responsible = BitrixObjects(cache_objects_name=CachesNames.responsible.value,
-                               cache_usage_name=CachesNames.responsible_usage.value,
-                               cache_objects_update_call="user.get",
-                               cache_objects_update_args={"filter": {"ACTIVE": True}},
-                               interactive_selection_sort_by=["LAST_NAME", "NAME"],
-                               interactive_selection_cast_to=[str])
-
-    projects = BitrixObjects(cache_objects_name=CachesNames.projects.value,
-                             cache_usage_name=CachesNames.projects_usage.value,
-                             cache_objects_update_call="sonet_group.get",
-                             cache_objects_update_args={"filter": {"ACTIVE": True}},
-                             interactive_selection_sort_by=["NAME"],
-                             interactive_selection_cast_to=[])
-
-
-    selected_created_by = created_by.select(interactive_question="Выберите создателя задачи")
-    selected_responsible = responsible.select(interactive_question="Выберите ответственного")
-    selected_project = projects.select(interactive_question="Выберите проект")
-    title = input("Название задачи: ")
-    description = CLI.multiline_input("Описание задачи: ")
-
-    print()
-    print(f"selected created_by: {selected_created_by['ID']} {selected_created_by['LAST_NAME']} "
-          f"{selected_created_by['NAME']}")
-    print(f"selected responsible: {selected_responsible['ID']} {selected_responsible['LAST_NAME']} "
-          f"{selected_responsible['NAME']}")
-    print(f"selected project: {selected_project['ID']} {selected_project['NAME']}")
-    print(f"task: '{title}'\n{description}")
-    print()
-
-    if CLI.get_y_n("It's okay?"):
-        task = create_task(title=title,
-                            created_by=selected_created_by["ID"],
-                            responsible_id=selected_responsible["ID"],
-                            project_id=selected_project['ID'],
-                            description=description)
-        task_id = task['task']['id']
-
-        add_multiple_comments_to_task_interactive(task_id)
-
-        if CLI.get_y_n("Закрыть задачу?"):
-            complete_task(task_id)
-
-        elif CLI.get_y_n("Начать задачу?"):
-            start_task(task_id)
-            change_task_stage(task, 'Выполняются')

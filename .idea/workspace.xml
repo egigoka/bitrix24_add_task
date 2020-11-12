@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9abf33f7-c61e-480e-b167-d91ea8d79ce4" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/add_task_interactive.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../bitrix24_notify_users/.idea/bitrix24_notify_users.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../bitrix24_report_today_orders/.idea/bitrix24_report_today_orders.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../proxy-checker-python/.idea/proxy-checker-python.iml" afterDir="false" />
@@ -84,7 +85,7 @@
       <updated>1604649718259</updated>
       <workItem from="1604649721348" duration="26712000" />
       <workItem from="1604914929575" duration="25573000" />
-      <workItem from="1605061140223" duration="14546000" />
+      <workItem from="1605061140223" duration="16647000" />
     </task>
     <servers />
   </component>
