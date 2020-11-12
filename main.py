@@ -242,6 +242,7 @@ if __name__ == '__main__':
                                [task_id, {'POST_MESSAGE': comment}])
             print(f"added comment: {response['result']} {comment}")
         else:
+            print()
             ended = True
 
     if CLI.get_y_n("Закрыть задачу?"):
