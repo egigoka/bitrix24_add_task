@@ -7,7 +7,6 @@
       <change afterPath="$PROJECT_DIR$/../proxy-checker-python/.idea/proxy-checker-python.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../commands/commands/cli9.py" beforeDir="false" afterPath="$PROJECT_DIR$/../commands/commands/cli9.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +84,7 @@
       <updated>1604649718259</updated>
       <workItem from="1604649721348" duration="26712000" />
       <workItem from="1604914929575" duration="25573000" />
-      <workItem from="1605061140223" duration="1409000" />
+      <workItem from="1605061140223" duration="7843000" />
     </task>
     <servers />
   </component>
@@ -109,30 +108,30 @@
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
     <state x="1843" y="-101" width="1071" height="700" key="#com.intellij.execution.impl.EditConfigurationsDialog/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605057919454" />
-    <state width="1878" height="358" key="GridCell.Tab.0.bottom" timestamp="1605061130027">
+    <state width="918" height="272" key="GridCell.Tab.0.bottom" timestamp="1605153318530">
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
     <state width="598" height="185" key="GridCell.Tab.0.bottom/0.23.1280.777@0.23.1280.777" timestamp="1604675098973" />
     <state width="598" height="185" key="GridCell.Tab.0.bottom/1280.-257.1920.1057/0.23.1280.777@0.23.1280.777" timestamp="1604833797460" />
-    <state width="1878" height="358" key="GridCell.Tab.0.bottom/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605061130027" />
-    <state width="1878" height="358" key="GridCell.Tab.0.center" timestamp="1605061130026">
+    <state width="918" height="272" key="GridCell.Tab.0.bottom/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605153318530" />
+    <state width="918" height="272" key="GridCell.Tab.0.center" timestamp="1605153318527">
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
     <state width="598" height="185" key="GridCell.Tab.0.center/0.23.1280.777@0.23.1280.777" timestamp="1604675098967" />
     <state width="598" height="185" key="GridCell.Tab.0.center/1280.-257.1920.1057/0.23.1280.777@0.23.1280.777" timestamp="1604833797459" />
-    <state width="1878" height="358" key="GridCell.Tab.0.center/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605061130026" />
-    <state width="1878" height="358" key="GridCell.Tab.0.left" timestamp="1605061130026">
+    <state width="918" height="272" key="GridCell.Tab.0.center/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605153318527" />
+    <state width="918" height="272" key="GridCell.Tab.0.left" timestamp="1605153318526">
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
     <state width="598" height="185" key="GridCell.Tab.0.left/0.23.1280.777@0.23.1280.777" timestamp="1604675098949" />
     <state width="598" height="185" key="GridCell.Tab.0.left/1280.-257.1920.1057/0.23.1280.777@0.23.1280.777" timestamp="1604833797458" />
-    <state width="1878" height="358" key="GridCell.Tab.0.left/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605061130026" />
-    <state width="1878" height="358" key="GridCell.Tab.0.right" timestamp="1605061130027">
+    <state width="918" height="272" key="GridCell.Tab.0.left/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605153318526" />
+    <state width="918" height="272" key="GridCell.Tab.0.right" timestamp="1605153318528">
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
     <state width="598" height="185" key="GridCell.Tab.0.right/0.23.1280.777@0.23.1280.777" timestamp="1604675098971" />
     <state width="598" height="185" key="GridCell.Tab.0.right/1280.-257.1920.1057/0.23.1280.777@0.23.1280.777" timestamp="1604833797459" />
-    <state width="1878" height="358" key="GridCell.Tab.0.right/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605061130027" />
+    <state width="918" height="272" key="GridCell.Tab.0.right/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605153318528" />
     <state width="1878" height="358" key="GridCell.Tab.1.bottom" timestamp="1605061130030">
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
@@ -167,6 +166,6 @@
     <state x="305" y="124" width="670" height="676" key="search.everywhere.popup/0.23.1280.777@0.23.1280.777" timestamp="1604651390380" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/bitrix24_add_task$main.coverage" NAME="main Coverage Results" MODIFIED="1605061752666" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/bitrix24_add_task$main.coverage" NAME="main Coverage Results" MODIFIED="1605153318505" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

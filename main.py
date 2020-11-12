@@ -177,11 +177,11 @@ if __name__ == '__main__':
                           interactive_selection_cast_to=[str])
     selected_created_by = users.select(interactive_question="Выберите создателя задачи")
 
-    Print.prettify(selected_created_by)
+    # Print.prettify(selected_created_by)
 
     selected_responsible = users.select(interactive_question="Выберите ответственного")
 
-    Print.prettify(selected_responsible)
+    # Print.prettify(selected_responsible)
 
     projects = BitrixObjects(cache_objects_name=CachesNames.projects.value,
                              cache_usage_name=CachesNames.projects_usage.value,
@@ -192,26 +192,59 @@ if __name__ == '__main__':
 
     selected_project = projects.select(interactive_question="Выберите проект")
 
-    Print.prettify(selected_project)
+    # Print.prettify(selected_project)
 
     task = create_task(title=input("Название задачи: "),
                         created_by=selected_created_by["ID"],
                         responsible_id=selected_responsible["ID"],
                         project_id=selected_project['ID'],
                         description=input("Описание задачи: "))
+    task_id = task['task']['id']
+    task_group_id = task['task']['group']['id']
 
-    Print.prettify(task)
+    # Print.prettify(task)
 
-    comment = input("Введите комментарий: ")
-    if comment:
-        response = b24.post('task.commentitem.add',
-                           [task["task"]["id"], {'POST_MESSAGE': comment}], verbose=True)
-        Print.prettify(response)
+    print()
+    print(f"selected created_by: {selected_created_by['ID']} {selected_created_by['LAST_NAME']} "
+          f"{selected_created_by['NAME']}")
+    print(f"selected responsible: {selected_created_by['ID']} {selected_created_by['LAST_NAME']} "
+          f"{selected_created_by['NAME']}")
+    print(f"selected project: {selected_project['ID']} {selected_project['NAME']}")
+    print(f"task: {task_id} '{task['task']['title']}' — {task['task']['description']}")
+    print()
 
-    
+    ended = False
+    while not ended:
+        comment = input("Введите комментарий: ")
+        if comment:
+            response = b24.post('task.commentitem.add',
+                               [task_id, {'POST_MESSAGE': comment}], verbose=False)
+            print(f"added comment: {response['result']} {comment}")
+        else:
+            ended = True
 
-# todo: set task status
-#       close task
-#       start/stop task
-#       deffered
-# todo: thefuck y n buttons
+    if CLI.get_y_n("Закрыть задачу?"):
+        b24.smart_get("tasks.task.complete", {"taskId": task_id})
+
+    elif CLI.get_y_n("Начать задачу?"):
+        b24.smart_get("tasks.task.start", {"taskId": task_id})
+
+        print(newline, "started", task_id, newline)
+
+        stages = b24.smart_get("task.stages.get", {"entityId": task_group_id})
+
+        new_stage_id = None
+        for id, stage_info in stages.items():
+            if stage_info['TITLE'] == 'Выполняются':
+                new_stage_id = id
+                break
+
+        if new_stage_id is None:
+            print(newline, "task stage id not found")
+            Print.prettify(stages)
+            print()
+        else:
+            b24.smart_get("task.stages.movetask", {"id": task_id, "stageId": new_stage_id})
+
+            print(f"task {task_id} moved to stage: {new_stage_id} Выполняется")
+
