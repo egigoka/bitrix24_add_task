@@ -39,8 +39,10 @@ class CacheType(Enum):
 
 
 class CachesNames(Enum):
-    users = "users"
-    users_usage = "users_usage"
+    created_by = "created_by"
+    created_by_usage = "created_by_usage"
+    responsible = "responsible"
+    responsible_usage = "responsible_usage"
     projects = "projects"
     projects_usage = "projects_usage"
 # endregion
@@ -178,17 +180,24 @@ invalidate_cache = "--no-cache" in OS.args
 # endregion
 
 if __name__ == '__main__':
-    users = BitrixObjects(cache_objects_name=CachesNames.users.value,
-                          cache_usage_name=CachesNames.users_usage.value,
+    created_by = BitrixObjects(cache_objects_name=CachesNames.created_by.value,
+                          cache_usage_name=CachesNames.created_by_usage.value,
                           cache_objects_update_call="user.get",
                           cache_objects_update_args={"filter": {"ACTIVE": True}},
                           interactive_selection_sort_by=["LAST_NAME", "NAME"],
                           interactive_selection_cast_to=[str])
-    selected_created_by = users.select(interactive_question="Выберите создателя задачи")
+    selected_created_by = created_by.select(interactive_question="Выберите создателя задачи")
 
     # Print.prettify(selected_created_by)
 
-    selected_responsible = users.select(interactive_question="Выберите ответственного")
+    responsible = BitrixObjects(cache_objects_name=CachesNames.responsible.value,
+                               cache_usage_name=CachesNames.responsible_usage.value,
+                               cache_objects_update_call="user.get",
+                               cache_objects_update_args={"filter": {"ACTIVE": True}},
+                               interactive_selection_sort_by=["LAST_NAME", "NAME"],
+                               interactive_selection_cast_to=[str])
+
+    selected_responsible = responsible.select(interactive_question="Выберите ответственного")
 
     # Print.prettify(selected_responsible)
 
