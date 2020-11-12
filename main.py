@@ -219,8 +219,8 @@ if __name__ == '__main__':
     print()
     print(f"selected created_by: {selected_created_by['ID']} {selected_created_by['LAST_NAME']} "
           f"{selected_created_by['NAME']}")
-    print(f"selected responsible: {selected_created_by['ID']} {selected_created_by['LAST_NAME']} "
-          f"{selected_created_by['NAME']}")
+    print(f"selected responsible: {selected_responsible['ID']} {selected_responsible['LAST_NAME']} "
+          f"{selected_responsible['NAME']}")
     print(f"selected project: {selected_project['ID']} {selected_project['NAME']}")
     print(f"task: {task_id} '{task['task']['title']}' — {task['task']['description']}")
     print()
