@@ -19,6 +19,7 @@ def change_responsible(task_id, new_responsible_id):
 # endregion
 
 
+# region funcs tasks
 def create_task(title, created_by, responsible_id, project_id, description):
     return b24.smart_get("tasks.task.add",
                          {"fields":
@@ -30,6 +31,57 @@ def create_task(title, created_by, responsible_id, project_id, description):
                           }
                          )
 
+
+def add_comment_to_task(task_id, comment_text, verbose = False):
+    response = b24.post('task.commentitem.add', [task_id, {'POST_MESSAGE': comment_text}])
+    if verbose:
+        print(f"added comment {response['result']}: {comment_text}")
+    return response
+
+
+def add_multiple_comments_to_task_interactive(task_id, verbose=False):
+    while True:
+        comment = input("Введите комментарий: ")
+        if comment:
+            add_comment_to_task(task_id=task_id, comment_text=comment, verbose=verbose)
+        else:
+            print()
+            return
+
+
+def complete_task(task_id, verbose=False):
+    response = b24.get("tasks.task.complete", {"taskId": task_id})
+    if verbose:
+        print(f"task {task_id} completed")
+    return response
+
+
+def start_task(task_id, verbose=False):
+    response = b24.smart_get("tasks.task.start", {"taskId": task_id})
+    if verbose:
+        print(f"task {task_id} started")
+    return response
+
+
+def change_task_stage(task_obj, new_stage_name, verbose=False):
+    stages = b24.smart_get("task.stages.get", {"entityId": task_group_id})
+
+    new_stage_id = None
+    for id, stage_info in stages.items():
+        if stage_info['TITLE'] == new_stage_name:
+            new_stage_id = id
+            break
+
+    if new_stage_id is None:
+        Print.prettify(stages)
+        raise KeyError("task stage id not found")
+    else:
+        b24.smart_get("task.stages.movetask", {"id": task_id, "stageId": new_stage_id})
+        if verbose:
+            print(f"task {task_id} moved to stage: {new_stage_id} Выполняется")
+
+
+# endregion
 
 # region enums caching
 class CacheType(Enum):
@@ -186,9 +238,6 @@ if __name__ == '__main__':
                           cache_objects_update_args={"filter": {"ACTIVE": True}},
                           interactive_selection_sort_by=["LAST_NAME", "NAME"],
                           interactive_selection_cast_to=[str])
-    selected_created_by = created_by.select(interactive_question="Выберите создателя задачи")
-
-    # Print.prettify(selected_created_by)
 
     responsible = BitrixObjects(cache_objects_name=CachesNames.responsible.value,
                                cache_usage_name=CachesNames.responsible_usage.value,
@@ -197,10 +246,6 @@ if __name__ == '__main__':
                                interactive_selection_sort_by=["LAST_NAME", "NAME"],
                                interactive_selection_cast_to=[str])
 
-    selected_responsible = responsible.select(interactive_question="Выберите ответственного")
-
-    # Print.prettify(selected_responsible)
-
     projects = BitrixObjects(cache_objects_name=CachesNames.projects.value,
                              cache_usage_name=CachesNames.projects_usage.value,
                              cache_objects_update_call="sonet_group.get",
@@ -208,22 +253,12 @@ if __name__ == '__main__':
                              interactive_selection_sort_by=["NAME"],
                              interactive_selection_cast_to=[])
 
+
+    selected_created_by = created_by.select(interactive_question="Выберите создателя задачи")
+    selected_responsible = responsible.select(interactive_question="Выберите ответственного")
     selected_project = projects.select(interactive_question="Выберите проект")
-
-    # Print.prettify(selected_project)
-
     title = input("Название задачи: ")
     description = CLI.multiline_input("Описание задачи: ")
-
-    task = create_task(title=title,
-                        created_by=selected_created_by["ID"],
-                        responsible_id=selected_responsible["ID"],
-                        project_id=selected_project['ID'],
-                        description=description)
-    task_id = task['task']['id']
-    task_group_id = task['task']['group']['id']
-
-    # Print.prettify(task)
 
     print()
     print(f"selected created_by: {selected_created_by['ID']} {selected_created_by['LAST_NAME']} "
@@ -231,42 +266,22 @@ if __name__ == '__main__':
     print(f"selected responsible: {selected_responsible['ID']} {selected_responsible['LAST_NAME']} "
           f"{selected_responsible['NAME']}")
     print(f"selected project: {selected_project['ID']} {selected_project['NAME']}")
-    print(f"task: {task_id} '{task['task']['title']}' — {task['task']['description']}")
+    print(f"task: '{title}'\n{description}")
     print()
 
-    ended = False
-    while not ended:
-        comment = input("Введите комментарий: ")
-        if comment:
-            response = b24.post('task.commentitem.add',
-                               [task_id, {'POST_MESSAGE': comment}])
-            print(f"added comment: {response['result']} {comment}")
-        else:
-            print()
-            ended = True
+    if CLI.get_y_n("It's okay?"):
+        task = create_task(title=title,
+                            created_by=selected_created_by["ID"],
+                            responsible_id=selected_responsible["ID"],
+                            project_id=selected_project['ID'],
+                            description=description)
+        task_id = task['task']['id']
 
-    if CLI.get_y_n("Закрыть задачу?"):
-        b24.smart_get("tasks.task.complete", {"taskId": task_id})
+        add_multiple_comments_to_task_interactive(task_id)
 
-    elif CLI.get_y_n("Начать задачу?"):
-        b24.smart_get("tasks.task.start", {"taskId": task_id})
+        if CLI.get_y_n("Закрыть задачу?"):
+            complete_task(task_id)
 
-        print(newline, "started", task_id, newline)
-
-        stages = b24.smart_get("task.stages.get", {"entityId": task_group_id})
-
-        new_stage_id = None
-        for id, stage_info in stages.items():
-            if stage_info['TITLE'] == 'Выполняются':
-                new_stage_id = id
-                break
-
-        if new_stage_id is None:
-            print(newline, "task stage id not found")
-            Print.prettify(stages)
-            print()
-        else:
-            b24.smart_get("task.stages.movetask", {"id": task_id, "stageId": new_stage_id})
-
-            print(f"task {task_id} moved to stage: {new_stage_id} Выполняется")
-
+        elif CLI.get_y_n("Начать задачу?"):
+            start_task(task_id)
+            change_task_stage(task, 'Выполняются')
