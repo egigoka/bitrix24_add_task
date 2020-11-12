@@ -12,6 +12,10 @@ def print_all_task_fields():
         print(name)
         for name_desc, value in desc.items():
             print(f"\t{name_desc}: {value}")
+
+
+def change_responsible(task_id, new_responsible_id):
+    return b24.get("tasks.task.update", {"taskId": task_id, 'FIELDS': {"RESPONSIBLE_ID": new_responsible_id}})
 # endregion
 
 
@@ -194,11 +198,14 @@ if __name__ == '__main__':
 
     # Print.prettify(selected_project)
 
-    task = create_task(title=input("Название задачи: "),
+    title = input("Название задачи: ")
+    description = CLI.multiline_input("Описание задачи: ")
+
+    task = create_task(title=title,
                         created_by=selected_created_by["ID"],
                         responsible_id=selected_responsible["ID"],
                         project_id=selected_project['ID'],
-                        description=input("Описание задачи: "))
+                        description=description)
     task_id = task['task']['id']
     task_group_id = task['task']['group']['id']
 
@@ -218,7 +225,7 @@ if __name__ == '__main__':
         comment = input("Введите комментарий: ")
         if comment:
             response = b24.post('task.commentitem.add',
-                               [task_id, {'POST_MESSAGE': comment}], verbose=False)
+                               [task_id, {'POST_MESSAGE': comment}])
             print(f"added comment: {response['result']} {comment}")
         else:
             ended = True
