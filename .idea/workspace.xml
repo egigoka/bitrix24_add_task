@@ -5,7 +5,6 @@
       <change afterPath="$PROJECT_DIR$/../bitrix24_notify_users/.idea/bitrix24_notify_users.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../bitrix24_report_today_orders/.idea/bitrix24_report_today_orders.iml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../proxy-checker-python/.idea/proxy-checker-python.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -84,7 +83,7 @@
       <updated>1604649718259</updated>
       <workItem from="1604649721348" duration="26712000" />
       <workItem from="1604914929575" duration="25573000" />
-      <workItem from="1605061140223" duration="10788000" />
+      <workItem from="1605061140223" duration="11154000" />
     </task>
     <servers />
   </component>

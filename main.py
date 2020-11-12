@@ -151,7 +151,12 @@ class BitrixObjects:
 
                 cnt += 1
 
-            print(newline.join(list_for_print))
+            for cnt, line in enumerate(list_for_print):
+                if cnt >= len(objects):
+                    Print.colored(line, "on_white")
+                else:
+                    print(line)
+            # print(newline.join(list_for_print))
 
             selected_enum_int = CLI.get_int(interactive_question)
             selected_object_info = enumerated_dict[selected_enum_int]
