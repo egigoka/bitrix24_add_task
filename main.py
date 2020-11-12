@@ -64,7 +64,7 @@ def start_task(task_id, verbose=False):
 
 
 def change_task_stage(task_obj, new_stage_name, verbose=False):
-    stages = b24.smart_get("task.stages.get", {"entityId": task_group_id})
+    stages = b24.smart_get("task.stages.get", {"entityId": task_obj['task']['group']['id']})
 
     new_stage_id = None
     for id, stage_info in stages.items():
