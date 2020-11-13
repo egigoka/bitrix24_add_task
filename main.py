@@ -58,7 +58,8 @@ def start_task(task_id, verbose=False):
 
 
 def change_task_stage(task_obj, new_stage_name, verbose=False):
-    stages = b24.smart_get("task.stages.get", {"entityId": task_obj['task']['group']['id']})
+    task_id = task_obj['id']
+    stages = b24.smart_get("task.stages.get", {"entityId": task_obj['group']['id']})
 
     new_stage_id = None
     for id, stage_info in stages.items():
@@ -77,6 +78,10 @@ def change_task_stage(task_obj, new_stage_name, verbose=False):
 
 def task_change_responsible(task_id, new_responsible_id):
     return b24.get("tasks.task.update", {"taskId": task_id, 'FIELDS': {"RESPONSIBLE_ID": new_responsible_id}})
+
+
+def generate_url_to_task(task):
+    return f"https://{Network.get_domain_of_url(hook)}/company/personal/user/{task['responsibleId']}/tasks/task/view/{task['id']}/"
 # endregion
 
 # region enums caching

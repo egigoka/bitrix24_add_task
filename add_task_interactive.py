@@ -21,7 +21,9 @@ if CLI.get_y_n("It's okay?"):
                         responsible_id=selected_responsible["ID"],
                         project_id=selected_project['ID'],
                         description=description)
-    task_id = task['task']['id']
+    task_id = task['id']
+
+    print(generate_url_to_task(task))
 
     add_multiple_comments_to_task_interactive(task_id)
 
