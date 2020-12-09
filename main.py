@@ -5,7 +5,7 @@ from commands import *
 
 # region development functions (temp)
 def print_all_task_fields():
-    fields = b24.smart_get("tasks.task.getfields")['fields']
+    fields = b24.smart_get("tasks.task.getfields")
 
     for name, desc in fields.items():
         print(name)
@@ -82,6 +82,49 @@ def task_change_responsible(task_id, new_responsible_id):
 
 def generate_url_to_task(task):
     return f"https://{Network.get_domain_of_url(hook)}/company/personal/user/{task['responsibleId']}/tasks/task/view/{task['id']}/"
+# endregion
+
+# region funcs working time
+
+
+def timeman_to_datetime(time_string):
+    import datetime
+    return datetime.datetime.strptime(time_string, "%Y-%m-%dT%H:%M:%S%z")
+
+
+def get_working_time(user_id):
+    import datetime
+
+    tm_status = timeman_status(user_id)
+    Print.prettify(tm_status)
+    time_start = tm_status["TIME_START"]
+    skipped_time = tm_status['TIME_LEAKS']
+    time_finish = tm_status['TIME_FINISH']
+    time_start = timeman_to_datetime(time_start)
+    if time_finish:
+        time_finish = timeman_to_datetime(time_finish)
+    else:
+        from tzlocal import get_localzone
+        time_now = datetime.datetime.now(tz=get_localzone())
+        time_finish = time_now
+    working_time = time_finish - time_start
+    print(f"{working_time=}")
+
+    skiped_time = datetime.timedelta(hours=int(skipped_time[0:2]),
+                                     minutes=int(skipped_time[3:5]),
+                                     seconds=int(skipped_time[6:8]))
+    return working_time - skiped_time
+
+
+def timeman_status(user_id):
+    return b24.smart_get("timeman.status", {"USER_ID": user_id})
+def start_working_time():
+    raise NotImplementedError
+def stop_working_time():
+    raise NotImplementedError
+def pause_working_time():
+    raise NotImplementedError
+
 # endregion
 
 # region enums caching
