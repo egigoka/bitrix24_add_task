@@ -2,12 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9abf33f7-c61e-480e-b167-d91ea8d79ce4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../bitrix24_notify_users/.idea/bitrix24_notify_users.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../bitrix24_report_today_orders/.idea/bitrix24_report_today_orders.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../proxy-checker-python/.idea/proxy-checker-python.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/bitrix24_add_task.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/bitrix24_add_task.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/add_task_interactive.py" beforeDir="false" afterPath="$PROJECT_DIR$/add_task_interactive.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/select_current_task.py" beforeDir="false" afterPath="$PROJECT_DIR$/select_current_task.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/select_current_task.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bitrix24_api/.idea/bitrix24_api.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../bitrix24_api/.idea/bitrix24_api.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bitrix24_notify_users/notify.py" beforeDir="false" afterPath="$PROJECT_DIR$/../bitrix24_notify_users/notify.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +24,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../bitrix24_report_today_orders" />
   </component>
   <component name="JupyterTrust" id="fd264c32-9353-442e-9f67-f319981bc7a3" />
   <component name="ProjectId" id="1juMqutkNq85Hf7IvRTBw96msEs" />
@@ -34,9 +36,10 @@
   <component name="PropertiesComponent">
     <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$USER_HOME$/AppData/Roaming/Python/Python39/site-packages/requests/__init__.py" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -44,7 +47,7 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.folding" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -75,7 +78,10 @@
       <method v="2" />
     </configuration>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SpellCheckerSettings" BundledDictionaries="0" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" Dictionaries="0" CorrectionsLimit="5" DefaultDictionary="application-level" UseSingleDictionary="true" />
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="9abf33f7-c61e-480e-b167-d91ea8d79ce4" name="Default Changelist" comment="" />
@@ -86,11 +92,15 @@
       <workItem from="1604649721348" duration="26712000" />
       <workItem from="1604914929575" duration="25573000" />
       <workItem from="1605061140223" duration="33258000" />
+      <workItem from="1608273018385" duration="11697000" />
+      <workItem from="1608352020667" duration="13466000" />
+      <workItem from="1611201911377" duration="24000" />
+      <workItem from="1612245235399" duration="734000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
+    <option name="version" value="2" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -109,6 +119,11 @@
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
     <state x="1843" y="-101" width="1071" height="700" key="#com.intellij.execution.impl.EditConfigurationsDialog/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605057919454" />
+    <state x="278" y="146" key="FileChooserDialogImpl" timestamp="1608294112769">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="278" y="146" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1608294112769" />
+    <state x="2198" y="146" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1608276649112" />
     <state width="918" height="272" key="GridCell.Tab.0.bottom" timestamp="1605776689697">
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
@@ -149,9 +164,10 @@
       <screen x="1280" y="-257" width="1920" height="1057" />
     </state>
     <state width="1878" height="358" key="GridCell.Tab.1.right/1280.-257.1920.1057/0.23.1280.777@1280.-257.1920.1057" timestamp="1605061130029" />
-    <state x="0" y="50" key="SettingsEditor" timestamp="1604681439906">
-      <screen x="0" y="23" width="1280" height="777" />
+    <state x="1920" y="36" key="SettingsEditor" timestamp="1608276701328">
+      <screen x="1920" y="0" width="1920" height="1040" />
     </state>
+    <state x="1920" y="36" key="SettingsEditor/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1608276701328" />
     <state x="0" y="50" key="SettingsEditor/0.23.1280.777@0.23.1280.777" timestamp="1604681439906" />
     <state x="1840" y="11" key="Vcs.Push.Dialog.v2" timestamp="1604918029173">
       <screen x="1280" y="-257" width="1920" height="1057" />

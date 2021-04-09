@@ -13,15 +13,23 @@ def print_all_task_fields():
             print(f"\t{name_desc}: {value}")
 # endregion
 
+def get_config_value(parameter):
+    config = JsonDict("config.json")
+    try:
+        return config[parameter]
+    except KeyError:
+        return None
+
 # region funcs tasks
-def create_task(title, created_by, responsible_id, project_id, description):
+def create_task(title, created_by, responsible_id, project_id, description, auditors):
     return b24.smart_get("tasks.task.add",
                          {"fields":
                               {"TITLE": title,
                                "CREATED_BY": created_by,
                                "RESPONSIBLE_ID": responsible_id,
                                "DESCRIPTION": description,
-                               "GROUP_ID": project_id}
+                               "GROUP_ID": project_id,
+                               "AUDITORS": auditors}
                           }
                          )
 
@@ -54,6 +62,27 @@ def start_task(task_id, verbose=False):
     response = b24.smart_get("tasks.task.start", {"taskId": task_id})
     if verbose:
         print(f"task {task_id} started")
+    return response
+
+
+def deffer_task(task_id, verbose=False):
+    response = b24.smart_get("tasks.task.deger", {"taskId": task_id})
+    if verbose:
+        print(f"task {task_id} deffered")
+    return response
+
+
+def pause_task(task_id, verbose=False):
+    response = b24.smart_get("tasks.task.pause", {"taskId": task_id})
+    if verbose:
+        print(f"task {task_id} paused")
+    return response
+
+
+def resume_task(task_id, verbose=False):
+    response = b24.smart_get("tasks.task.renew", {"taskId": task_id})
+    if verbose:
+        print(f"task {task_id} resumed")
     return response
 
 
@@ -96,34 +125,36 @@ def get_working_time(user_id):
     import datetime
 
     tm_status = timeman_status(user_id)
-    Print.prettify(tm_status)
     time_start = tm_status["TIME_START"]
     skipped_time = tm_status['TIME_LEAKS']
     time_finish = tm_status['TIME_FINISH']
+
     time_start = timeman_to_datetime(time_start)
+
     if time_finish:
         time_finish = timeman_to_datetime(time_finish)
     else:
         from tzlocal import get_localzone
         time_now = datetime.datetime.now(tz=get_localzone())
         time_finish = time_now
+
     working_time = time_finish - time_start
-    print(f"{working_time=}")
 
     skiped_time = datetime.timedelta(hours=int(skipped_time[0:2]),
                                      minutes=int(skipped_time[3:5]),
                                      seconds=int(skipped_time[6:8]))
+
     return working_time - skiped_time
 
 
 def timeman_status(user_id):
     return b24.smart_get("timeman.status", {"USER_ID": user_id})
-def start_working_time():
-    raise NotImplementedError
-def stop_working_time():
-    raise NotImplementedError
-def pause_working_time():
-    raise NotImplementedError
+def start_working_time(user_id):
+    return b24.smart_get("timeman.open", {"USER_ID": user_id})
+def stop_working_time(user_id):
+    return b24.smart_get("timeman.close", {"USER_ID": user_id})
+def pause_working_time(user_id):
+    return b24.smart_get("timeman.pause", {"USER_ID": user_id})
 
 # endregion
 
@@ -139,6 +170,8 @@ class CachesNames(Enum):
     created_by_usage = "created_by_usage"
     responsible = "responsible"
     responsible_usage = "responsible_usage"
+    auditor = "auditor"
+    auditor_usage = "auditor_usage"
     projects = "projects"
     projects_usage = "projects_usage"
 # endregion
@@ -243,7 +276,10 @@ class BitrixObjects:
 
             sorted_objects = []
             for object_id, last_used_timestamp in usage.items():
-                sorted_objects.append(objects.pop(object_id))
+                try:
+                    sorted_objects.append(objects[object_id])
+                except KeyError:
+                    pass
 
             sorted_objects += List.sort_by(list(objects.values()),
                                            *self.interactive_selection_sort_by,
@@ -276,7 +312,12 @@ class BitrixObjects:
             return selected_object_info
 
 # region init
-hook = "https://kurganmk.bitrix24.ru/rest/11/tbjn4luh6u1b6irw/"
+hook_encrypted = [35, 45, 11, 41, 4, -49, -50, -2, 65, 72, 47, 43, 0, 49, -61, 
+                  -55, -51, 58, 84, 81, 34, 26, 5, 38, -4, -61, 17, 68, 14, 81, 
+                  32, 44, 11, -24, -62, -58, -50, 5, 22, 89, 40, 27, -48, 33, 
+                  -9, 8, 1, 65, 75, 79, 43, -18, -51, -24]
+
+hook = Str.decrypt(hook_encrypted, Keyboard.translate_string(Str.input_pass()))
 
 b24 = BitrixRESTAPI(hook)
 
@@ -293,6 +334,13 @@ responsible = BitrixObjects(cache_objects_name=CachesNames.responsible.value,
                             cache_objects_update_args={"filter": {"ACTIVE": True}},
                             interactive_selection_sort_by=["LAST_NAME", "NAME"],
                             interactive_selection_cast_to=[str])
+                            
+auditors = BitrixObjects(cache_objects_name=CachesNames.auditor.value,
+                        cache_usage_name=CachesNames.auditor_usage.value,
+                        cache_objects_update_call="user.get",
+                        cache_objects_update_args={"filter": {"ACTIVE": True}},
+                        interactive_selection_sort_by=["LAST_NAME", "NAME"],
+                        interactive_selection_cast_to=[str])
 
 projects = BitrixObjects(cache_objects_name=CachesNames.projects.value,
                          cache_usage_name=CachesNames.projects_usage.value,
