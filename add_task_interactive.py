@@ -2,18 +2,19 @@ from main import *
 
 
 def main():
-
-    selected_created_by = created_by.select(get_config_value("default_created_by"), interactive_question="Выберите создателя задачи")
-    selected_responsible = responsible.select(get_config_value("default_responsible"), interactive_question="Выберите ответственного")
+    selected_created_by = created_by.select(get_config_value("default_created_by"),
+                                            interactive_question="Выберите создателя задачи")
+    selected_responsible = responsible.select(get_config_value("default_responsible"),
+                                              interactive_question="Выберите ответственного")
     selected_auditor = auditors.select(get_config_value("default_auditor"), interactive_question="Выберите наблюдателя")
     selected_project = projects.select(get_config_value("default_project"), interactive_question="Выберите проект")
-    
+
     title = input("Название задачи: ")
-    
+
     description = CLI.multiline_input("Описание задачи: ")
-    
-    munites_planned = CLI.get_int("Минут план: ")
-    
+
+    minutes_planned = CLI.get_int("Минут план: ")
+
     minutes_fact = CLI.get_int("Минут факт: ")
 
     print()
@@ -28,12 +29,15 @@ def main():
     print()
 
     if CLI.get_y_n("It's okay?"):
+        additional_fields = {minutes_plan_set_name: minutes_planned,
+                             minutes_fact_set_name: minutes_fact}
         task = create_task(title=title,
-                            created_by=selected_created_by["ID"],
-                            responsible_id=selected_responsible["ID"],
-                            project_id=selected_project['ID'],
-                            description=description,
-                            auditors=[selected_auditor['ID']])
+                           created_by=selected_created_by["ID"],
+                           responsible_id=selected_responsible["ID"],
+                           project_id=selected_project['ID'],
+                           description=description,
+                           auditors=[selected_auditor['ID']],
+                           additional_fields=additional_fields)
         task_id = task['id']
 
         print(generate_url_to_task(task))

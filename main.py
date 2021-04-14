@@ -1,40 +1,86 @@
 from enum import Enum
 from typing import Any, Union
-from bitrix24api import BitrixRESTAPI
-from commands import *
+try:
+    from bitrix24api import BitrixRESTAPI
+except ImportError:
+    print("install dependency by typing:")
+    print("pip3 install git+https://github.com/egigoka/bitrix24_api")
+try:
+    from commands import *
+except ImportError:
+    print("install dependency by typing:")
+    print("pip3 install git+https://github.com/egigoka/commands")
+
 
 # region development functions (temp)
 def print_all_task_fields():
-    fields = b24.smart_get("tasks.task.getfields")
+    fields = get_all_tasks_fields()
 
     for name, desc in fields.items():
         print(name)
         for name_desc, value in desc.items():
             print(f"\t{name_desc}: {value}")
+
+
+def get_all_tasks_fields():
+    return b24.smart_get("tasks.task.getfields")
+
 # endregion
 
-def get_config_value(parameter):
-    config = JsonDict("config.json")
+
+config_path = "config.json"
+
+minutes_fact_set_name = "UF_AUTO_677220304274"
+minutes_fact_get_name = "ufAuto677220304274"
+minutes_plan_set_name = "UF_AUTO_743543780336"
+minutes_plan_get_name = "ufAuto743543780336"
+
+
+def get_config_value(key):
+    config = JsonDict(config_path)
     try:
-        return config[parameter]
+        return config[key]
     except KeyError:
         return None
 
+
+def set_config_value(key, value):
+    config = JsonDict(config_path)
+    config[key] = value
+    config.save()
+
+
+def clear_config_value(key):
+    config = JsonDict(config_path)
+    config.pop(key)
+    config.save()
+
+
 # region funcs tasks
-def create_task(title, created_by, responsible_id, project_id, description, auditors):
+def create_task(title, created_by, responsible_id, project_id, description, auditors, additional_fields: dict):
+    fields = {"TITLE": title,
+              "CREATED_BY": created_by,
+              "RESPONSIBLE_ID": responsible_id,
+              "DESCRIPTION": description,
+              "GROUP_ID": project_id,
+              "AUDITORS": auditors
+              }
+    fields.update(additional_fields)
     return b24.smart_get("tasks.task.add",
-                         {"fields":
-                              {"TITLE": title,
-                               "CREATED_BY": created_by,
-                               "RESPONSIBLE_ID": responsible_id,
-                               "DESCRIPTION": description,
-                               "GROUP_ID": project_id,
-                               "AUDITORS": auditors}
+                         {"fields": fields}
+                         )
+
+
+def update_task(task_id, fields: dict):
+    return b24.smart_get("tasks.task.update",
+                         {"taskId": task_id,
+                          "fields":
+                              fields,
                           }
                          )
 
 
-def add_comment_to_task(task_id, comment_text, verbose = False):
+def add_comment_to_task(task_id, comment_text, verbose=False):
     response = b24.post('task.commentitem.add', [task_id, {'POST_MESSAGE': comment_text}])
     if verbose:
         print(f"added comment {response['result']}: {comment_text}")
@@ -111,6 +157,8 @@ def task_change_responsible(task_id, new_responsible_id):
 
 def generate_url_to_task(task):
     return f"https://{Network.get_domain_of_url(hook)}/company/personal/user/{task['responsibleId']}/tasks/task/view/{task['id']}/"
+
+
 # endregion
 
 # region funcs working time
@@ -149,12 +197,19 @@ def get_working_time(user_id):
 
 def timeman_status(user_id):
     return b24.smart_get("timeman.status", {"USER_ID": user_id})
+
+
 def start_working_time(user_id):
     return b24.smart_get("timeman.open", {"USER_ID": user_id})
+
+
 def stop_working_time(user_id):
     return b24.smart_get("timeman.close", {"USER_ID": user_id})
+
+
 def pause_working_time(user_id):
     return b24.smart_get("timeman.pause", {"USER_ID": user_id})
+
 
 # endregion
 
@@ -174,12 +229,18 @@ class CachesNames(Enum):
     auditor_usage = "auditor_usage"
     projects = "projects"
     projects_usage = "projects_usage"
+
+
 # endregion
 
 # region funcs caching
 def get_cache_filepath(name: str) -> str:
-    # {/path/to/this/script}/cache/{name}.json
-    return Path.combine(Path.get_parent(Path.safe__file__(__file__)),
+    try:
+        path_to_this_script = Path.get_parent(Path.safe__file__(__file__))
+    except NameError:
+        path_to_this_script = "."
+    # {path_to_this_script}/cache/{name}.json
+    return Path.combine(path_to_this_script,
                         "cache",
                         f"{name}.json")
 
@@ -199,6 +260,8 @@ def get_cache(name: str, days_valid: int, cache_type: CacheType) -> (bool, Union
     cache_valid = time_delta < time_delta_max and file_exist
 
     return cache_valid, cached_result
+
+
 # endregion
 
 class BitrixObjects:
@@ -311,13 +374,17 @@ class BitrixObjects:
 
             return selected_object_info
 
-# region init
-hook_encrypted = [35, 45, 11, 41, 4, -49, -50, -2, 65, 72, 47, 43, 0, 49, -61, 
-                  -55, -51, 58, 84, 81, 34, 26, 5, 38, -4, -61, 17, 68, 14, 81, 
-                  32, 44, 11, -24, -62, -58, -50, 5, 22, 89, 40, 27, -48, 33, 
-                  -9, 8, 1, 65, 75, 79, 43, -18, -51, -24]
 
-hook = Str.decrypt(hook_encrypted, Keyboard.translate_string(Str.input_pass()))
+# region init
+hook_encrypted = get_config_value("hook_encrypted")
+if hook_encrypted:
+    hook = Str.decrypt(hook_encrypted, Keyboard.translate_string(Str.input_pass()))
+else:
+    hook = Str.input_pass("Input hook url: ")
+    password = Keyboard.translate_string(Str.input_pass("Input password: "))
+    hook_encrypted = Str.encrypt(hook, password)
+    set_config_value("hook_encrypted", hook_encrypted)
+    del password
 
 b24 = BitrixRESTAPI(hook)
 
@@ -334,13 +401,13 @@ responsible = BitrixObjects(cache_objects_name=CachesNames.responsible.value,
                             cache_objects_update_args={"filter": {"ACTIVE": True}},
                             interactive_selection_sort_by=["LAST_NAME", "NAME"],
                             interactive_selection_cast_to=[str])
-                            
+
 auditors = BitrixObjects(cache_objects_name=CachesNames.auditor.value,
-                        cache_usage_name=CachesNames.auditor_usage.value,
-                        cache_objects_update_call="user.get",
-                        cache_objects_update_args={"filter": {"ACTIVE": True}},
-                        interactive_selection_sort_by=["LAST_NAME", "NAME"],
-                        interactive_selection_cast_to=[str])
+                         cache_usage_name=CachesNames.auditor_usage.value,
+                         cache_objects_update_call="user.get",
+                         cache_objects_update_args={"filter": {"ACTIVE": True}},
+                         interactive_selection_sort_by=["LAST_NAME", "NAME"],
+                         interactive_selection_cast_to=[str])
 
 projects = BitrixObjects(cache_objects_name=CachesNames.projects.value,
                          cache_usage_name=CachesNames.projects_usage.value,
