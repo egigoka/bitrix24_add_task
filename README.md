@@ -14,5 +14,5 @@ Simple tasks manager for Bitrix24
 
 ## Running
 1. cd to folder you cloned into like `cd bitrix24_add_task`
-2. run start.py `python3 start.py`
+2. run start.py `py start.py` or `python3 start.py`
 3. follow the instructions
