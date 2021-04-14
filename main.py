@@ -1,5 +1,7 @@
+import sys
 from enum import Enum
 from typing import Any, Union
+
 try:
     from bitrix24api import BitrixRESTAPI
 except ImportError:
@@ -24,6 +26,7 @@ def print_all_task_fields():
 
 def get_all_tasks_fields():
     return b24.smart_get("tasks.task.getfields")
+
 
 # endregion
 
@@ -264,6 +267,36 @@ def get_cache(name: str, days_valid: int, cache_type: CacheType) -> (bool, Union
 
 # endregion
 
+
+def maybe_reset_hook():
+    if CLI.get_y_n("Maybe, reset hook and password?"):
+        clear_config_value("hook_encrypted")
+    sys.exit(0)
+
+
+def check_permission(b24, human_name, bitrix_name, method, parameters=imdict()):
+    try:
+        response = b24.get(method, parameters)
+        if "error" in response:
+            raise PermissionError(response['error'])
+        if "result" in response:
+            response = response["result"]
+    except ConnectionError as e:
+        print("Cannot connect to bitrix")
+        maybe_reset_hook()
+    except PermissionError as e:
+        print(f"Cannot get {human_name}. Check permission '{bitrix_name}'. Error: {response['error']}")
+        maybe_reset_hook()
+
+
+def check_permissions(b24):
+    check_permission(b24, "list of users", "Пользователи (user)", "user.get")
+    check_permission(b24, "list of tasks", "Задачи (task)", "tasks.task.list")
+    check_permission(b24, "time manager data", "Учет рабочего времени (timeman)", "timeman.status")
+    check_permission(b24, "list of work groups", "Рабочие группы (sonet_group)", "sonet_group.get")
+
+
+
 class BitrixObjects:
     def __init__(self, cache_objects_name: str, cache_usage_name: str,
                  cache_objects_update_call: str, cache_objects_update_args: dict,
@@ -362,7 +395,7 @@ class BitrixObjects:
 
             for cnt, line in enumerate(list_for_print):
                 if cnt >= len(objects):
-                    Print.colored(line, "on_white")
+                    Print.colored(line, "black", "on_white")
                 else:
                     print(line)
             # print(newline.join(list_for_print))
@@ -380,13 +413,28 @@ hook_encrypted = get_config_value("hook_encrypted")
 if hook_encrypted:
     hook = Str.decrypt(hook_encrypted, Keyboard.translate_string(Str.input_pass()))
 else:
-    hook = Str.input_pass("Input hook url: ")
-    password = Keyboard.translate_string(Str.input_pass("Input password: "))
-    hook_encrypted = Str.encrypt(hook, password)
-    set_config_value("hook_encrypted", hook_encrypted)
-    del password
+    hook_set = False
+    while not hook_set:
+        hook = Str.input_pass("Input hook url: ")
+        if len(hook) == 0:
+            print("Please, enter hook url")
+            continue
+
+        password_set = False
+        while not password_set:
+            password = Keyboard.translate_string(Str.input_pass("Input password: "))
+            if len(password) == 0:
+                print("Please, enter some non-empty password")
+            else:
+                password_set = True
+        hook_encrypted = Str.encrypt(hook, password)
+        set_config_value("hook_encrypted", hook_encrypted)
+        del password
+        hook_set = True
 
 b24 = BitrixRESTAPI(hook)
+
+check_permissions(b24)
 
 created_by = BitrixObjects(cache_objects_name=CachesNames.created_by.value,
                            cache_usage_name=CachesNames.created_by_usage.value,

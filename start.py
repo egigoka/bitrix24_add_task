@@ -20,8 +20,8 @@ class Actions(Enum):
     wp = "pause working time"
     wq = "quit working day"
 
-    sd = "enable|disable deferred tasks"
-    sdb = "enable|disable config and debug options"
+    sd = "show|hide deferred tasks"
+    sdb = "show|hide config and debug options"
 
     dptf = "debug: print all tasks fields"
     dpet = "debug: get elapsed time of task"
