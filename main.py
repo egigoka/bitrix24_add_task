@@ -398,7 +398,7 @@ class BitrixObjects:
                     new_str = str(Obj.cast_to(object_info[key_sort],
                                               cast_to=self.interactive_selection_cast_to))
                     to_print += f"{new_str} "
-                list_for_print.insert(0, to_print)
+                list_for_print.insert(0, to_print.strip())
 
                 enumerated_dict[cnt] = object_info
 
