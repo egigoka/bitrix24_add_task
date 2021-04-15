@@ -14,7 +14,7 @@ except ImportError:
     print("pip3 install git+https://github.com/egigoka/commands")
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 # region development functions (temp)
 def print_all_task_fields():
@@ -299,7 +299,6 @@ def check_permissions(b24):
 
 
 def str_or_empty_str_if_none(obj):
-    print(type(obj), str(obj))
     if obj is None:
         print("ret emp str")
         return ""
@@ -396,8 +395,8 @@ class BitrixObjects:
             for object_info in sorted_objects:
                 to_print = f"[{cnt}] "
                 for key_sort in self.interactive_selection_sort_by:
-                    new_str = str(List.itemgetter_with_casting(object_info[key_sort],
-                                                               cast_to=self.interactive_selection_cast_to))
+                    new_str = str(Obj.cast_to(object_info[key_sort],
+                                              cast_to=self.interactive_selection_cast_to))
                     to_print += f"{new_str} "
                 list_for_print.insert(0, to_print)
 
