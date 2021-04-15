@@ -14,6 +14,8 @@ except ImportError:
     print("pip3 install git+https://github.com/egigoka/commands")
 
 
+__version__ = "1.0.1"
+
 # region development functions (temp)
 def print_all_task_fields():
     fields = get_all_tasks_fields()
@@ -440,21 +442,21 @@ created_by = BitrixObjects(cache_objects_name=CachesNames.created_by.value,
                            cache_usage_name=CachesNames.created_by_usage.value,
                            cache_objects_update_call="user.get",
                            cache_objects_update_args={"filter": {"ACTIVE": True}},
-                           interactive_selection_sort_by=["LAST_NAME", "NAME"],
+                           interactive_selection_sort_by=["LAST_NAME", "NAME", "SECOND_NAME", "WORK_POSITION"],
                            interactive_selection_cast_to=[str])
 
 responsible = BitrixObjects(cache_objects_name=CachesNames.responsible.value,
                             cache_usage_name=CachesNames.responsible_usage.value,
                             cache_objects_update_call="user.get",
                             cache_objects_update_args={"filter": {"ACTIVE": True}},
-                            interactive_selection_sort_by=["LAST_NAME", "NAME"],
+                            interactive_selection_sort_by=["LAST_NAME", "NAME", "SECOND_NAME", "WORK_POSITION"],
                             interactive_selection_cast_to=[str])
 
 auditors = BitrixObjects(cache_objects_name=CachesNames.auditor.value,
                          cache_usage_name=CachesNames.auditor_usage.value,
                          cache_objects_update_call="user.get",
                          cache_objects_update_args={"filter": {"ACTIVE": True}},
-                         interactive_selection_sort_by=["LAST_NAME", "NAME"],
+                         interactive_selection_sort_by=["LAST_NAME", "NAME", "SECOND_NAME", "WORK_POSITION"],
                          interactive_selection_cast_to=[str])
 
 projects = BitrixObjects(cache_objects_name=CachesNames.projects.value,
