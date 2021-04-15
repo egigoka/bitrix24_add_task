@@ -300,9 +300,7 @@ def check_permissions(b24):
 
 def str_or_empty_str_if_none(obj):
     if obj is None:
-        print("ret emp str")
         return ""
-    print("ret", str(obj))
     return str(obj)
 
 
