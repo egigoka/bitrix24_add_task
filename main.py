@@ -14,7 +14,7 @@ except ImportError:
     print("pip3 install git+https://github.com/egigoka/commands")
 
 
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 
 # region development functions (temp)
 def print_all_task_fields():
@@ -377,13 +377,15 @@ class BitrixObjects:
             enumerated_dict = {}
             cnt = 0
 
-            sorted_objects = []
+            recently_used_objects = []
             for object_id, last_used_timestamp in usage.items():
                 try:
-                    sorted_objects.append(objects[object_id])
+                    recently_used_objects.append(objects[object_id])
                 except KeyError:
                     pass
-
+            sorted_objects = List.sort_by(list(recently_used_objects),
+                                          *self.interactive_selection_sort_by,
+                                          cast_to=self.interactive_selection_cast_to)
             sorted_objects += List.sort_by(list(objects.values()),
                                            *self.interactive_selection_sort_by,
                                            cast_to=self.interactive_selection_cast_to)

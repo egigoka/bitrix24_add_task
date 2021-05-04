@@ -62,7 +62,7 @@ def get_all_tasks():
                            #     },
                            "select": list(get_all_tasks_fields().keys())
                            }
-                          , verbose=False)
+                          , verbose=True)
 
     def sort_date(input_date):
         if input_date is None:
