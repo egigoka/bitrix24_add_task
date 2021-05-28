@@ -23,6 +23,7 @@ class Actions(Enum):
     sd = "show|hide deferred tasks"
     sn = "show|hide not in progress tasks"
     si = "show|hide not important tasks"
+    sde = "show|hide description of tasks"
     sdb = "show|hide config and debug options"
 
     dptf = "debug: print all tasks fields"
@@ -87,6 +88,7 @@ def print_all_tasks():
 
     in_progress = 0
 
+    print("*" * Console.width())
     for cnt, task in enumerate(all_tasks):
         print(f"[{cnt}]", end=" ")
         Print.colored(statuses[task['subStatus']], "green", end=" ")
@@ -100,9 +102,10 @@ def print_all_tasks():
         Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end='')        
         print()
         Print.colored(generate_url_to_task(task), "blue")
-        # if task['description']:
-        #    print("описание:")
-        #    print(task['description'])
+        if not hide_task_descriptions:
+            if task['description']:
+                print("описание:")
+                print(task['description'])
         print("*" * Console.width())
 
     print("total:", len(all_tasks))
@@ -152,6 +155,7 @@ if bool(get_config_value("hide not in progress tasks")):
     bad_statuses.append("2")
 
 hide_not_important = bool(get_config_value("hide not important tasks"))
+hide_task_descriptions = bool(get_config_value("hide tasks destriptions"))
 
 debug_actions = ["dptf", "dpet", "dprt", "configreset", "ccr", "cca", "ccp", "ccu", "cch",
                  "csr", "csa", "csp", "csu", "csh"]
@@ -161,6 +165,7 @@ debug_actions = ["dptf", "dpet", "dprt", "configreset", "ccr", "cca", "ccp", "cc
 def main():
     global bad_statuses
     global hide_not_important
+    global hide_task_descriptions
 
     print_all_actions()
 
@@ -254,9 +259,11 @@ def main():
         elif action == Actions.sd:
             if "6" in bad_statuses:
                 bad_statuses.pop(bad_statuses.index("6"))
+                print_all_tasks()
                 print("show deffered tasks")
             else:
                 bad_statuses.append("6")
+                print_all_tasks()
                 print("hide deffered tasks")
         elif action == Actions.sn:
             if "1" in bad_statuses \
@@ -264,16 +271,24 @@ def main():
                 bad_statuses.pop(bad_statuses.index("1"))
                 bad_statuses.pop(bad_statuses.index("2"))
                 set_config_value("hide not in progress tasks", False)
+                print_all_tasks()
                 print("show not in progress tasks")
             else:
                 bad_statuses.append("1")
                 bad_statuses.append("2")
                 set_config_value("hide not in progress tasks", True)
+                print_all_tasks()
                 print("hide not in progress tasks")
         elif action == Actions.si:
             hide_not_important = not hide_not_important
             set_config_value("hide not important tasks", hide_not_important)
+            print_all_tasks()
             print(f"{hide_not_important=}")
+        elif action == Actions.sde:
+            hide_task_descriptions = not hide_task_descriptions
+            set_config_value("hide tasks destriptions", hide_task_descriptions)
+            print_all_tasks()
+            print(f"{hide_task_descriptions=}")
         elif action == Actions.ta:
             import add_task_interactive
 
@@ -328,7 +343,7 @@ def main():
             clear_config_value("hook_encrypted")
             sys.exit(0)
         else:
-            Print.colored("unknown command", "red")
+            Print.colored("no action assigned to this action", "red")
     except KeyboardInterrupt:
         pass
 
