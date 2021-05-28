@@ -62,7 +62,7 @@ def get_all_tasks():
                            #     },
                            "select": list(get_all_tasks_fields().keys())
                            }
-                          , verbose=True)
+                          , verbose=False)
 
     def sort_date(input_date):
         if input_date is None:
@@ -151,14 +151,8 @@ debug_actions = ["dptf", "dpet", "dprt", "configreset", "ccr", "cca", "ccp", "cc
                  "csr", "csa", "csp", "csu", "csh"]
 
 # endregion
-try:
-    print_all_tasks()
-except ConnectionError:
-    if CLI.get_y_n("Wrong password! Do you want to reset hook and password?"):
-        clear_config_value("hook_encrypted")
-    sys.exit(0)
 
-while True:
+def main()
     print_all_actions()
 
     try:
@@ -313,3 +307,14 @@ while True:
             Print.colored("unknown command", "red")
     except KeyboardInterrupt:
         pass
+
+if __name__ == "__main__":
+    try:
+        print_all_tasks()
+    except ConnectionError:
+        if CLI.get_y_n("Wrong password! Do you want to reset hook and password?"):
+            clear_config_value("hook_encrypted")
+        sys.exit(0)
+    
+    while True:
+        main()

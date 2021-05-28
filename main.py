@@ -450,7 +450,7 @@ check_permissions(b24)
 created_by = BitrixObjects(cache_objects_name=CachesNames.created_by.value,
                            cache_usage_name=CachesNames.created_by_usage.value,
                            cache_objects_update_call="user.get",
-                           cache_objects_update_args={"filter": {"ACTIVE": True}},
+                           cache_objects_update_args={},
                            interactive_selection_sort_by=["LAST_NAME", "NAME", "SECOND_NAME", "WORK_POSITION"],
                            interactive_selection_cast_to=[str_or_empty_str_if_none])
 
