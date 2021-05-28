@@ -21,6 +21,8 @@ class Actions(Enum):
     wq = "quit working day"
 
     sd = "show|hide deferred tasks"
+    sn = "show|hide not in progress tasks"
+    si = "show|hide not important tasks"
     sdb = "show|hide config and debug options"
 
     dptf = "debug: print all tasks fields"
@@ -51,18 +53,20 @@ def get_responsible_selected(reset=False):
 
 
 def get_all_tasks():
+    filter_ = {"RESPONSIBLE_ID": get_responsible_selected()["ID"],
+               "!REAL_STATUS": bad_statuses,}
+    if hide_not_important:
+        filter_["PRIORITY"] = [2]
+    verbose = False
     tasks = b24.smart_get("tasks.task.list",
-                          {"filter":
-                               {"RESPONSIBLE_ID": get_responsible_selected()["ID"],
-                                "!STATUS": bad_statuses,
-                                },
+                          {"filter": filter_,
                            # "order":
                            #    {# "REAL_STATUS": "DESC",
                            #        "DEADLINE": "DESC"
                            #     },
                            "select": list(get_all_tasks_fields().keys())
                            }
-                          , verbose=False)
+                          , verbose=verbose)
 
     def sort_date(input_date):
         if input_date is None:
@@ -85,16 +89,15 @@ def print_all_tasks():
 
     for cnt, task in enumerate(all_tasks):
         print(f"[{cnt}]", end=" ")
-        Print.colored(statuses[task['status']], "green", end=" ")
-        if statuses[task['status']] == "in progress":
-            in_progress += 1
+        Print.colored(statuses[task['subStatus']], "green", end=" ")
         print(task['title'], end=" ")
         if task['durationPlan'] is not None:
             if int(task['durationPlan']):
                 Print.colored(f"", "yellow",
-                          end=" ")
+                          end="")
         if task['deadline'] is not None:
-            Print.colored(task['deadline'], "red", end="")
+            Print.colored(task['deadline'], "red", end=" ", sep="")
+        Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end='')        
         print()
         Print.colored(generate_url_to_task(task), "blue")
         # if task['description']:
@@ -103,11 +106,11 @@ def print_all_tasks():
         print("*" * Console.width())
 
     print("total:", len(all_tasks))
-    Print.colored(in_progress, "tasks in progress", "red")
     return all_tasks
 
 
 def print_all_actions():
+    print_debug = get_config_value("print_debug")
     last_first_symbol = ""
     for e in Actions:
         first_symbol = e.name[0]
@@ -144,22 +147,28 @@ statuses = {"-3": "almost overdue",
             "6": "deferred",
             "7": "declined", }
 bad_statuses = ["4", "5", "6"]  # на подтверждении, завершено, отложено
+if bool(get_config_value("hide not in progress tasks")):
+    bad_statuses.append("1")
+    bad_statuses.append("2")
 
-print_debug = get_config_value("print_debug")
+hide_not_important = bool(get_config_value("hide not important tasks"))
 
 debug_actions = ["dptf", "dpet", "dprt", "configreset", "ccr", "cca", "ccp", "ccu", "cch",
                  "csr", "csa", "csp", "csu", "csh"]
 
 # endregion
 
-def main()
+def main():
+    global bad_statuses
+    global hide_not_important
+
     print_all_actions()
 
     try:
         action = Actions[Keyboard.translate_string(input("select action: "))]
     except KeyError:
         print("unknown action")
-        continue
+        return
     except KeyboardInterrupt:
         print("^C")
         sys.exit(0)
@@ -249,6 +258,22 @@ def main()
             else:
                 bad_statuses.append("6")
                 print("hide deffered tasks")
+        elif action == Actions.sn:
+            if "1" in bad_statuses \
+            or "2" in bad_statuses:
+                bad_statuses.pop(bad_statuses.index("1"))
+                bad_statuses.pop(bad_statuses.index("2"))
+                set_config_value("hide not in progress tasks", False)
+                print("show not in progress tasks")
+            else:
+                bad_statuses.append("1")
+                bad_statuses.append("2")
+                set_config_value("hide not in progress tasks", True)
+                print("hide not in progress tasks")
+        elif action == Actions.si:
+            hide_not_important = not hide_not_important
+            set_config_value("hide not important tasks", hide_not_important)
+            print(f"{hide_not_important=}")
         elif action == Actions.ta:
             import add_task_interactive
 
@@ -279,8 +304,7 @@ def main()
             File.delete(config_path)
             print("config file deleted")
         elif action == Actions.sdb:
-            print_debug = not bool(print_debug)
-            set_config_value("print_debug", print_debug)
+            set_config_value("print_debug", not bool(get_config_value("print_debug")))
 
         elif action == Actions.csr:
             selected_responsible = responsible.select(interactive_question="Выберите ответственного")

@@ -14,7 +14,7 @@ except ImportError:
     print("pip3 install git+https://github.com/egigoka/commands")
 
 
-__version__ = "1.0.5"
+__version__ = "1.1.0"
 
 # region development functions (temp)
 def print_all_task_fields():
@@ -62,13 +62,15 @@ def clear_config_value(key):
 
 
 # region funcs tasks
-def create_task(title, created_by, responsible_id, project_id, description, auditors, additional_fields: dict):
+def create_task(title, created_by, responsible_id, project_id, description, auditors, additional_fields: dict,
+                is_it_important):
     fields = {"TITLE": title,
               "CREATED_BY": created_by,
               "RESPONSIBLE_ID": responsible_id,
               "DESCRIPTION": description,
               "GROUP_ID": project_id,
-              "AUDITORS": auditors
+              "AUDITORS": auditors,
+              "PRIORITY": "2" if is_it_important else "1"
               }
     fields.update(additional_fields)
     return b24.smart_get("tasks.task.add",
