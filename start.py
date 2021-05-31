@@ -82,6 +82,19 @@ def get_all_tasks():
     return tasks
 
 
+def html_deescape(string):
+    html_escape_table = {
+        "&": "&amp;",
+        '"': "&quot;",
+        "'": "&apos;",
+        ">": "&gt;",
+        "<": "&lt;",
+        }
+    for sym, esc in html_escape_table.items():
+        string = string.replace(esc, sym)
+    return string
+
+
 def print_all_tasks():
     # https://training.bitrix24.com/rest_help/tasks/task/tasks/tasks_task_list.php
     all_tasks = get_all_tasks()
@@ -105,7 +118,7 @@ def print_all_tasks():
         if not hide_task_descriptions:
             if task['description']:
                 print("описание:")
-                print(task['description'])
+                print(html_deescape(task['description']))
         print("*" * Console.width())
 
     print("total:", len(all_tasks))
