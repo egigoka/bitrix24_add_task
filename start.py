@@ -201,7 +201,7 @@ def main():
             start_working_time(get_responsible_selected()["ID"])
             print_working_time()
         elif action == Actions.wp:
-            # pause_working_time(get_responsible_selected()["ID"])
+            pause_working_time(get_responsible_selected()["ID"])
             # for task in get_all_tasks():
             #     try:
             #         pause_task(task['id'], verbose=True)
