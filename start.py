@@ -183,7 +183,11 @@ def main():
     print_all_actions()
 
     try:
-        action = Actions[Keyboard.translate_string(input("select action: "))]
+        input_str = input("select action: ")
+        input_str_translated = Keyboard.translate_string(input_str)
+        if input_str != input_str_translated:
+            print(f"> {input_str_translated}")
+        action = Actions[input_str_translated]
     except KeyError:
         print("unknown action")
         return
@@ -197,23 +201,23 @@ def main():
             start_working_time(get_responsible_selected()["ID"])
             print_working_time()
         elif action == Actions.wp:
-            pause_working_time(get_responsible_selected()["ID"])
-            for task in get_all_tasks():
-                try:
-                    pause_task(task['id'], verbose=True)
-                except KeyError:
-                    pass
+            # pause_working_time(get_responsible_selected()["ID"])
+            # for task in get_all_tasks():
+            #     try:
+            #         pause_task(task['id'], verbose=True)
+            #     except KeyError:
+            #         pass
             print_working_time()
         elif action == Actions.wq:
             try:
                 stop_working_time(get_responsible_selected()["ID"])
             except KeyError:
                 pass
-            for task in get_all_tasks():
-                try:
-                    pause_task(task['id'], verbose=True)
-                except KeyError:
-                    pass
+            # for task in get_all_tasks():
+            #     try:
+            #         pause_task(task['id'], verbose=True)
+            #     except KeyError:
+            #         pass
             print_working_time()
         elif action == Actions.ts:
 
