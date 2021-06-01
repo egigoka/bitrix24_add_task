@@ -144,12 +144,14 @@ def print_all_actions():
 
 
 def print_working_time():
-    print(get_working_time(get_responsible_selected()["ID"]))
-
     timeman_out = timeman_status(get_responsible_selected()["ID"])
+    time = str(get_working_time(get_responsible_selected()["ID"]))[:-10]
+    status = timeman_out['STATUS'].lower()
+    pauses = timeman_out['TIME_LEAKS'].lower()[:-3]
+    if len(pauses) == 5:
+        pauses = pauses[1:]
 
-    print(f"status: {timeman_out['STATUS'].lower()}")
-    print(f"pauses: {timeman_out['TIME_LEAKS'].lower()}")
+    print(f"{time} [{status}] pauses: {pauses}")
 
 
 statuses = {"-3": "almost overdue",
@@ -314,6 +316,7 @@ def main():
             print_all_tasks()
         elif action == Actions.tma:
             all_tasks = print_all_tasks()
+            print_working_time()
             selected_task_int = CLI.get_int("Select task")
             selected_task = all_tasks[selected_task_int]
 
