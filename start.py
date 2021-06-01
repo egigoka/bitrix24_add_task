@@ -145,10 +145,18 @@ def print_all_actions():
 
 def print_working_time():
     timeman_out = timeman_status(get_responsible_selected()["ID"])
-    time = str(get_working_time(get_responsible_selected()["ID"]))[:-10]
+    time = str(get_working_time(get_responsible_selected()["ID"]))
     status = timeman_out['STATUS'].lower()
-    pauses = timeman_out['TIME_LEAKS'].lower()[:-3]
-    if len(pauses) == 5:
+    pauses = timeman_out['TIME_LEAKS'].lower()
+
+    if len(time) == 14:
+        time = time[:-7]
+    if len(time) == 7:
+        time = time[:-3]
+
+    if len(pauses) == 8:
+        pauses = pauses[:-3]
+    if pauses.startswith("0"): # remove first 0
         pauses = pauses[1:]
 
     print(f"{time} [{status}] pauses: {pauses}")
