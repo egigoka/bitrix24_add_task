@@ -13,8 +13,8 @@ except ImportError:
     print("install dependency by typing:")
     print("pip3 install git+https://github.com/egigoka/commands")
 
-
 __version__ = "1.1.0"
+
 
 # region development functions (temp)
 def print_all_task_fields():
@@ -27,7 +27,7 @@ def print_all_task_fields():
 
 
 def get_all_tasks_fields():
-    return b24.smart_get("tasks.task.getfields")
+    return b24.smart("tasks.task.getfields")
 
 
 # endregion
@@ -73,18 +73,19 @@ def create_task(title, created_by, responsible_id, project_id, description, audi
               "PRIORITY": "2" if is_it_important else "1"
               }
     fields.update(additional_fields)
-    return b24.smart_get("tasks.task.add",
-                         {"fields": fields}
-                         )
+    return b24.smart("tasks.task.add",
+                     {"fields": fields},
+                     post=True
+                     )
 
 
 def update_task(task_id, fields: dict):
-    return b24.smart_get("tasks.task.update",
-                         {"taskId": task_id,
-                          "fields":
-                              fields,
-                          }
-                         )
+    return b24.smart("tasks.task.update",
+                     {"taskId": task_id,
+                      "fields":
+                          fields,
+                      }
+                     )
 
 
 def add_comment_to_task(task_id, comment_text, verbose=False):
@@ -112,28 +113,28 @@ def complete_task(task_id, verbose=False):
 
 
 def start_task(task_id, verbose=False):
-    response = b24.smart_get("tasks.task.start", {"taskId": task_id})
+    response = b24.smart("tasks.task.start", {"taskId": task_id})
     if verbose:
         print(f"task {task_id} started")
     return response
 
 
 def deffer_task(task_id, verbose=False):
-    response = b24.smart_get("tasks.task.deger", {"taskId": task_id})
+    response = b24.smart("tasks.task.deger", {"taskId": task_id})
     if verbose:
         print(f"task {task_id} deffered")
     return response
 
 
 def pause_task(task_id, verbose=False):
-    response = b24.smart_get("tasks.task.pause", {"taskId": task_id})
+    response = b24.smart("tasks.task.pause", {"taskId": task_id})
     if verbose:
         print(f"task {task_id} paused")
     return response
 
 
 def resume_task(task_id, verbose=False):
-    response = b24.smart_get("tasks.task.renew", {"taskId": task_id})
+    response = b24.smart("tasks.task.renew", {"taskId": task_id})
     if verbose:
         print(f"task {task_id} resumed")
     return response
@@ -141,7 +142,7 @@ def resume_task(task_id, verbose=False):
 
 def change_task_stage(task_obj, new_stage_name, verbose=False):
     task_id = task_obj['id']
-    stages = b24.smart_get("task.stages.get", {"entityId": task_obj['group']['id']})
+    stages = b24.smart("task.stages.get", {"entityId": task_obj['group']['id']})
 
     new_stage_id = None
     for id, stage_info in stages.items():
@@ -153,7 +154,7 @@ def change_task_stage(task_obj, new_stage_name, verbose=False):
         Print.prettify(stages)
         raise KeyError("task stage id not found")
     else:
-        b24.smart_get("task.stages.movetask", {"id": task_id, "stageId": new_stage_id})
+        b24.smart("task.stages.movetask", {"id": task_id, "stageId": new_stage_id})
         if verbose:
             print(f"task {task_id} moved to stage: {new_stage_id} Выполняется")
 
@@ -203,19 +204,19 @@ def get_working_time(user_id):
 
 
 def timeman_status(user_id):
-    return b24.smart_get("timeman.status", {"USER_ID": user_id})
+    return b24.smart("timeman.status", {"USER_ID": user_id})
 
 
 def start_working_time(user_id):
-    return b24.smart_get("timeman.open", {"USER_ID": user_id})
+    return b24.smart("timeman.open", {"USER_ID": user_id})
 
 
 def stop_working_time(user_id):
-    return b24.smart_get("timeman.close", {"USER_ID": user_id})
+    return b24.smart("timeman.close", {"USER_ID": user_id})
 
 
 def pause_working_time(user_id):
-    return b24.smart_get("timeman.pause", {"USER_ID": user_id})
+    return b24.smart("timeman.pause", {"USER_ID": user_id})
 
 
 # endregion
@@ -325,9 +326,10 @@ class BitrixObjects:
                                                self.cache_objects_days_valid,
                                                CacheType.dict)
         if not cache_valid:
-            objects = b24.smart_get(self.cache_objects_update_call,
-                                    self.cache_objects_update_args,
-                                    verbose=False)
+            objects = b24.smart(self.cache_objects_update_call,
+                                self.cache_objects_update_args,
+                                verbose=False,
+                                post=True)
             output = List.sort_by(objects, "ID", cast_to=[int])
             output = List.enum_by(output, "ID", cast_to=[int])
             cached_result.string = output

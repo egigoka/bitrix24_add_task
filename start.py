@@ -59,15 +59,15 @@ def get_all_tasks():
     if hide_not_important:
         filter_["PRIORITY"] = [2]
     verbose = False
-    tasks = b24.smart_get("tasks.task.list",
-                          {"filter": filter_,
+    tasks = b24.smart("tasks.task.list",
+                      {"filter": filter_,
                            # "order":
                            #    {# "REAL_STATUS": "DESC",
                            #        "DEADLINE": "DESC"
                            #     },
                            "select": list(get_all_tasks_fields().keys())
                            }
-                          , verbose=verbose)
+                      , verbose=verbose)
 
     def sort_date(input_date):
         if input_date is None:
@@ -203,7 +203,7 @@ def main():
         return
     except KeyboardInterrupt:
         print("^C")
-        sys.exit(0)
+        OS.exit(0)
     try:
         if action == Actions.wpr:
             print_working_time()
@@ -245,7 +245,7 @@ def main():
             selected_task_int = CLI.get_int("Select task")
             selected_task = all_tasks[selected_task_int]
 
-            Print.prettify(b24.smart_get("task.elapseditem.getlist", {"TASKID": selected_task['id']}))
+            Print.prettify(b24.smart("task.elapseditem.getlist", {"TASKID": selected_task['id']}))
         elif action == Actions.dptf:
             print_all_task_fields()
         elif action == Actions.q:
