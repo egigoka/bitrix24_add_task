@@ -4,7 +4,7 @@ from main import *
 
 # region init
 class Actions(Enum):
-    tpr = "print all tasks"
+    t = "print all tasks"
     ta = "add task"
     ts = "start task"
     tp = "pause task"
@@ -15,7 +15,7 @@ class Actions(Enum):
     tma = "task fact minutes add"
     tm = "task set fact minutes"
 
-    wpr = "show working time"
+    w = "show working time"
     ws = "start|resume working time"
     wp = "pause working time"
     wq = "quit working day"
@@ -28,7 +28,7 @@ class Actions(Enum):
 
     dptf = "debug: print all tasks fields"
     dpet = "debug: get elapsed time of task"
-    dprt = "debug: print raw tasks"
+    dt = "debug: print raw tasks"
 
     configreset = "delete this script config and setup all again"
     csr = "set default responsible"
@@ -95,6 +95,24 @@ def html_deescape(string):
     return string
 
 
+def format_time(string, show_time=False):  # YYYY-MM-DD?HH:mm:SS+??:??
+    show_year = False
+    if Time.datetime().month == 1:
+        show_year = True
+    year = string[:4]
+    month = string[5:7]
+    day = string[8:10]
+    hour = string[11:13]
+    minute = string[14:16]
+    second = string[17:19]
+    output = f"{day}.{month}"
+    if show_year:
+        output += f".{year}"
+    if show_time:
+        output += f" {hour}:{minute}"
+    return output
+
+
 def print_all_tasks():
     # https://training.bitrix24.com/rest_help/tasks/task/tasks/tasks_task_list.php
     all_tasks = get_all_tasks()
@@ -111,8 +129,9 @@ def print_all_tasks():
                 Print.colored(f"", "yellow",
                           end="")
         if task['deadline'] is not None:
-            Print.colored(task['deadline'], "red", end=" ", sep="")
-        Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end='')        
+            Print.colored(format_time(task['deadline']), "red", end=" ", sep="")
+        Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end=' ')
+        Print.colored(f"{task['creator']['name']}", "green", end='')
         print()
         Print.colored(generate_url_to_task(task), "blue")
         if not hide_task_descriptions:
@@ -180,7 +199,7 @@ if bool(get_config_value("hide not in progress tasks")):
 hide_not_important = bool(get_config_value("hide not important tasks"))
 hide_task_descriptions = bool(get_config_value("hide tasks destriptions"))
 
-debug_actions = ["dptf", "dpet", "dprt", "configreset", "ccr", "cca", "ccp", "ccu", "cch",
+debug_actions = ["dptf", "dpet", "dt", "configreset", "ccr", "cca", "ccp", "ccu", "cch",
                  "csr", "csa", "csp", "csu", "csh"]
 
 # endregion
@@ -205,7 +224,7 @@ def main():
         print("^C")
         OS.exit(0)
     try:
-        if action == Actions.wpr:
+        if action == Actions.w:
             print_working_time()
         elif action == Actions.ws:
             start_working_time(get_responsible_selected()["ID"])
@@ -252,7 +271,7 @@ def main():
             import sys
 
             sys.exit()
-        elif action == Actions.dprt:
+        elif action == Actions.dt:
             Print.prettify(get_all_tasks())
         elif action == Actions.tp:
             # pause task
@@ -320,7 +339,7 @@ def main():
             import add_task_interactive
 
             add_task_interactive.main()
-        elif action == Actions.tpr:
+        elif action == Actions.t:
             print_all_tasks()
         elif action == Actions.tma:
             all_tasks = print_all_tasks()

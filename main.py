@@ -1,3 +1,4 @@
+import datetime
 import sys
 from enum import Enum
 from typing import Any, Union
@@ -63,14 +64,15 @@ def clear_config_value(key):
 
 # region funcs tasks
 def create_task(title, created_by, responsible_id, project_id, description, auditors, additional_fields: dict,
-                is_it_important):
+                is_it_important, deadline = None):
     fields = {"TITLE": title,
               "CREATED_BY": created_by,
               "RESPONSIBLE_ID": responsible_id,
               "DESCRIPTION": description,
               "GROUP_ID": project_id,
               "AUDITORS": auditors,
-              "PRIORITY": "2" if is_it_important else "1"
+              "PRIORITY": "2" if is_it_important else "1",
+              "DEADLINE": "" if deadline is None else datetime_to_bitrix_time(deadline)
               }
     fields.update(additional_fields)
     return b24.smart("tasks.task.add",
@@ -172,9 +174,14 @@ def generate_url_to_task(task):
 # region funcs working time
 
 
-def timeman_to_datetime(time_string):
+def bitrix_time_to_datetime(time_string):
     import datetime
     return datetime.datetime.strptime(time_string, "%Y-%m-%dT%H:%M:%S%z")
+
+
+def datetime_to_bitrix_time(dt: datetime.datetime) -> str:
+    import datetime
+    return datetime.datetime.strftime(dt, "%Y-%m-%dT%H:%M:%S%z")
 
 
 def get_working_time(user_id):
@@ -185,10 +192,10 @@ def get_working_time(user_id):
     skipped_time = tm_status['TIME_LEAKS']
     time_finish = tm_status['TIME_FINISH']
 
-    time_start = timeman_to_datetime(time_start)
+    time_start = bitrix_time_to_datetime(time_start)
 
     if time_finish:
-        time_finish = timeman_to_datetime(time_finish)
+        time_finish = bitrix_time_to_datetime(time_finish)
     else:
         from tzlocal import get_localzone
         time_now = datetime.datetime.now(tz=get_localzone())
@@ -461,14 +468,14 @@ created_by = BitrixObjects(cache_objects_name=CachesNames.created_by.value,
 responsible = BitrixObjects(cache_objects_name=CachesNames.responsible.value,
                             cache_usage_name=CachesNames.responsible_usage.value,
                             cache_objects_update_call="user.get",
-                            cache_objects_update_args={"filter": {"ACTIVE": True}},
+                            cache_objects_update_args={},
                             interactive_selection_sort_by=["LAST_NAME", "NAME", "SECOND_NAME", "WORK_POSITION"],
                             interactive_selection_cast_to=[str_or_empty_str_if_none])
 
 auditors = BitrixObjects(cache_objects_name=CachesNames.auditor.value,
                          cache_usage_name=CachesNames.auditor_usage.value,
                          cache_objects_update_call="user.get",
-                         cache_objects_update_args={"filter": {"ACTIVE": True}},
+                         cache_objects_update_args={},
                          interactive_selection_sort_by=["LAST_NAME", "NAME", "SECOND_NAME", "WORK_POSITION"],
                          interactive_selection_cast_to=[str_or_empty_str_if_none])
 
