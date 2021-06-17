@@ -19,7 +19,7 @@ def main():
 
     minutes_fact = CLI.get_int("Минут факт: ")
 
-    is_it_important = CLI.get_y_n("Это важная задача")
+    is_it_important = CLI.get_y_n("Это важная задача", "n")
 
     while True:
         deadline = None
@@ -46,7 +46,7 @@ def main():
         if deadline is None:
             break
         if deadline < Time.datetime().replace(hour=23, minute=59, second=59):
-            if CLI.get_y_n("Do you really wanna set deadline in past"):
+            if CLI.get_y_n("Do you really wanna set deadline in past", "n"):
                 break
             else:
                 continue
@@ -68,7 +68,7 @@ def main():
         Print.colored(f"deadline: {datetime_to_bitrix_time(deadline)}", "red")
     print()
 
-    if CLI.get_y_n("It's okay?"):
+    if CLI.get_y_n("It's okay?", "y"):
         additional_fields = {minutes_plan_set_name: minutes_planned,
                              minutes_fact_set_name: minutes_fact}
         task = create_task(title=title,
@@ -86,10 +86,10 @@ def main():
 
         add_multiple_comments_to_task_interactive(task_id)
 
-        if CLI.get_y_n("Закрыть задачу?"):
+        if CLI.get_y_n("Закрыть задачу?", "n"):
             complete_task(task_id)
 
-        elif CLI.get_y_n("Начать задачу?"):
+        elif CLI.get_y_n("Начать задачу?", "y"):
             start_task(task_id)
             change_task_stage(task, 'Выполняются')
 
