@@ -43,6 +43,8 @@ def main():
             except ValueError as e:
                 print(e)
                 continue
+        if deadline is None:
+            break
         if deadline < Time.datetime().replace(hour=23, minute=59, second=59):
             if CLI.get_y_n("Do you really wanna set deadline in past"):
                 break
