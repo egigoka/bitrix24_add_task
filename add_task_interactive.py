@@ -8,12 +8,24 @@ def main():
                                             interactive_question="Выберите создателя задачи")
     selected_responsible = responsible.select(get_config_value("default_responsible"),
                                               interactive_question="Выберите ответственного")
-    selected_auditor = auditors.select(get_config_value("default_auditor"), interactive_question="Выберите наблюдателя")
+
+    if isinstance(get_config_value("default_auditor"), str):
+        selected_auditor = auditors.select(get_config_value("default_auditor"))
+        selected_auditors = [selected_auditor]
+    elif isinstance(get_config_value('default_auditor'), list):
+        selected_auditors = []
+        for auditor_id in get_config_value("default_auditor"):
+            selected_auditors.append(auditors.select(auditor_id))
+    else:
+        selected_auditors = [auditors.select(interactive_question="Выберите наблюдателя")]
+
     selected_project = projects.select(get_config_value("default_project"), interactive_question="Выберите проект")
 
-    title = input("Название задачи: ")
+    title = ""
+    while not title:
+        title = input("Название задачи: ").strip()
 
-    description = CLI.multiline_input("Описание задачи: ")
+    description = CLI.multiline_input("Описание задачи: ").strip()
 
     minutes_planned = CLI.get_int("Минут план: ")
 
@@ -23,7 +35,12 @@ def main():
 
     while True:
         deadline = None
-        deadline_str = input("День дедлайна \"01\" или с месяцем \"0101\" или с годом \"01012021\": ").strip()
+        deadline_str = input(f"День дедлайна \"{str(Time.datetime().day).zfill(2)}\" "
+                             f"или с месяцем \"{str(Time.datetime().day).zfill(2)}"
+                                             f"{str(Time.datetime().month).zfill(2)}\" "
+                             f"или с годом \"{str(Time.datetime().day).zfill(2)}"
+                                           f"{str(Time.datetime().month).zfill(2)}"
+                                           f"{str(Time.datetime().year).zfill(4)}\": ").strip()
         if deadline_str:
             deadline = Time.datetime()
             try:
@@ -58,10 +75,13 @@ def main():
           f"{selected_created_by['NAME']}")
     print(f"selected responsible: {selected_responsible['ID']} {selected_responsible['LAST_NAME']} "
           f"{selected_responsible['NAME']}")
-    print(f"selected auditor: {selected_auditor['ID']} {selected_auditor['LAST_NAME']} "
-          f"{selected_auditor['NAME']}")
+
+    print(f"selected auditors:")
+    for selected_auditor in selected_auditors:
+        print(f"    {selected_auditor['ID']} {selected_auditor['LAST_NAME']} "
+              f"{selected_auditor['NAME']}")
     print(f"selected project: {selected_project['ID']} {selected_project['NAME']}")
-    Print.colored(f"important: {is_it_important}", "red" if is_it_important else "", sep='')
+    Print.colored(f"important: {is_it_important}", "red" if is_it_important else "")
     print(f"minutes planned: {minutes_planned}")
     print(f"minutes fact: {minutes_fact}")
     if deadline is not None:
@@ -76,7 +96,7 @@ def main():
                            responsible_id=selected_responsible["ID"],
                            project_id=selected_project['ID'],
                            description=description,
-                           auditors=[selected_auditor['ID']],
+                           auditors=get_config_value('default_auditor'),
                            additional_fields=additional_fields,
                            is_it_important=is_it_important,
                            deadline=deadline)
@@ -89,7 +109,7 @@ def main():
         if CLI.get_y_n("Закрыть задачу?", "n"):
             complete_task(task_id)
 
-        elif CLI.get_y_n("Начать задачу?", "y"):
+        elif CLI.get_y_n("Начать задачу?", "n"):
             start_task(task_id)
             change_task_stage(task, 'Выполняются')
 

@@ -63,8 +63,15 @@ def clear_config_value(key):
 
 
 # region funcs tasks
+
+def __create_task(fields: dict):
+    return b24.smart("tasks.task.add",
+                          {"fields": fields},
+                          post=True
+                         )
+
 def create_task(title, created_by, responsible_id, project_id, description, auditors, additional_fields: dict,
-                is_it_important, deadline = None):
+                is_it_important, deadline=None):
     fields = {"TITLE": title,
               "CREATED_BY": created_by,
               "RESPONSIBLE_ID": responsible_id,
@@ -75,10 +82,27 @@ def create_task(title, created_by, responsible_id, project_id, description, audi
               "DEADLINE": "" if deadline is None else datetime_to_bitrix_time(deadline)
               }
     fields.update(additional_fields)
-    return b24.smart("tasks.task.add",
-                     {"fields": fields},
-                     post=True
-                     )
+
+    try:
+        result = __create_task(fields)
+    except KeyError as e:
+        if str(e) != "'result'" and not str(e).startswith('(\'\\\'result\\\''):
+            raise e
+        # creating task with responsible = hook user
+        hook_user_info = b24.smart_get("profile")
+        hook_user_id = hook_user_info["ID"]
+
+        responsible_id_need_to_set = fields["RESPONSIBLE_ID"]
+
+        fields["RESPONSIBLE_ID"] = hook_user_id
+
+        result = __create_task(fields)
+
+        # update task wit real responsible user
+        update_task(result["id"], {"RESPONSIBLE_ID": responsible_id_need_to_set})
+        result["responsibleId"] = responsible_id_need_to_set
+
+    return result
 
 
 def update_task(task_id, fields: dict):
@@ -244,6 +268,7 @@ class CachesNames(Enum):
     auditor_usage = "auditor_usage"
     projects = "projects"
     projects_usage = "projects_usage"
+    tasks = "tasks"
 
 
 # endregion
@@ -377,7 +402,18 @@ class BitrixObjects:
         usage[id] = Time.stamp()
         usage.save()
 
-    def select(self, selected_id: int = None, interactive_question: str = "Выберите") -> dict:
+    def format_object(self, id):
+        object = self.get_all()[id]
+        formatted = ''
+        for key_sort in self.interactive_selection_sort_by:
+            new_str = str(Obj.cast_to(object[key_sort],
+                                      cast_to=self.interactive_selection_cast_to))
+            formatted += f"{new_str} "
+        formatted = formatted.strip()
+        return formatted
+
+    def select(self, selected_id: int = None, interactive_question: str = "Выберите",
+               highlighted_objects_ids="load usage") -> dict:
         objects = self.get_all()
 
         if selected_id is not None:  # if not interactive
@@ -388,13 +424,17 @@ class BitrixObjects:
             enumerated_dict = {}
             cnt = 0
 
-            recently_used_objects = []
-            for object_id, last_used_timestamp in usage.items():
+            highlighted_objects = []
+            if highlighted_objects_ids == "load usage":
+                highlighted_objects_ids = usage.keys()
+            # for object_id, last_used_timestamp in usage.items():
+            for object_id in highlighted_objects_ids:
                 try:
-                    recently_used_objects.append(objects[object_id])
+                    highlighted_objects.append(objects[object_id])
                 except KeyError:
                     pass
-            sorted_objects = List.sort_by(list(recently_used_objects),
+
+            sorted_objects = List.sort_by(list(highlighted_objects),
                                           *self.interactive_selection_sort_by,
                                           cast_to=self.interactive_selection_cast_to)
             sorted_objects += List.sort_by(list(objects.values()),
@@ -404,12 +444,7 @@ class BitrixObjects:
             list_for_print = []
 
             for object_info in sorted_objects:
-                to_print = f"[{cnt}] "
-                for key_sort in self.interactive_selection_sort_by:
-                    new_str = str(Obj.cast_to(object_info[key_sort],
-                                              cast_to=self.interactive_selection_cast_to))
-                    to_print += f"{new_str} "
-                list_for_print.insert(0, to_print.strip())
+                list_for_print.insert(0, f"[{cnt}] {self.format_object(object_info['ID'])}")
 
                 enumerated_dict[cnt] = object_info
 
@@ -420,7 +455,6 @@ class BitrixObjects:
                     Print.colored(line, "black", "on_white")
                 else:
                     print(line)
-            # print(newline.join(list_for_print))
 
             selected_enum_int = CLI.get_int(interactive_question)
             selected_object_info = enumerated_dict[selected_enum_int]
@@ -485,6 +519,7 @@ projects = BitrixObjects(cache_objects_name=CachesNames.projects.value,
                          cache_objects_update_args={"filter": {"ACTIVE": True}},
                          interactive_selection_sort_by=["NAME"],
                          interactive_selection_cast_to=[str_or_empty_str_if_none])
+
 # endregion
 
 # region args

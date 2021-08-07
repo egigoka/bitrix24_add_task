@@ -1,6 +1,9 @@
+import datetime
+import pprint
 import sys
 from enum import Enum
 from main import *
+
 
 # region init
 class Actions(Enum):
@@ -14,6 +17,9 @@ class Actions(Enum):
 
     tma = "task fact minutes add"
     tm = "task set fact minutes"
+
+    rtt = "report: today time by tasks"
+    rty = "report: yesterday time by tasks"
 
     w = "show working time"
     ws = "start|resume working time"
@@ -32,11 +38,11 @@ class Actions(Enum):
 
     configreset = "delete this script config and setup all again"
     csr = "set default responsible"
-    csa = "set default auditor"
+    csa = "add default auditor"
     csp = "set default project"
     csu = "set user (whose tasks will be shown)"
     ccr = "clean default responsible"
-    cca = "clean default auditor"
+    cca = "remove default auditor"
     ccp = "clean default project"
     cch = "clear encrypted hook url"
 
@@ -53,20 +59,22 @@ def get_responsible_selected(reset=False):
     return responsible_to_filter_tasks
 
 
-def get_all_tasks():
-    filter_ = {"RESPONSIBLE_ID": get_responsible_selected()["ID"],
-               "!REAL_STATUS": bad_statuses,}
-    if hide_not_important:
-        filter_["PRIORITY"] = [2]
+def get_all_tasks(filters_enabled=True):
+    filter_ = {}
+    if filters_enabled:
+        filter_ = {"RESPONSIBLE_ID": get_responsible_selected()["ID"],
+                   "!REAL_STATUS": bad_statuses, }
+        if hide_not_important:
+            filter_["PRIORITY"] = [2]
     verbose = False
     tasks = b24.smart("tasks.task.list",
                       {"filter": filter_,
-                           # "order":
-                           #    {# "REAL_STATUS": "DESC",
-                           #        "DEADLINE": "DESC"
-                           #     },
-                           "select": list(get_all_tasks_fields().keys())
-                           }
+                       # "order":
+                       #    {# "REAL_STATUS": "DESC",
+                       #        "DEADLINE": "DESC"
+                       #     },
+                       "select": list(get_all_tasks_fields().keys())
+                       }
                       , verbose=verbose)
 
     def sort_date(input_date):
@@ -89,7 +97,7 @@ def html_deescape(string):
         "'": "&apos;",
         ">": "&gt;",
         "<": "&lt;",
-        }
+    }
     for sym, esc in html_escape_table.items():
         string = string.replace(esc, sym)
     return string
@@ -127,7 +135,7 @@ def print_all_tasks():
         if task['durationPlan'] is not None:
             if int(task['durationPlan']):
                 Print.colored(f"", "yellow",
-                          end="")
+                              end="")
         if task['deadline'] is not None:
             Print.colored(format_time(task['deadline']), "red", end=" ", sep="")
         Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end=' ')
@@ -175,10 +183,21 @@ def print_working_time():
 
     if len(pauses) == 8:
         pauses = pauses[:-3]
-    if pauses.startswith("0"): # remove first 0
+    if pauses.startswith("0"):  # remove first 0
         pauses = pauses[1:]
 
     print(f"{time} [{status}] pauses: {pauses}")
+
+
+def seconds_to_human_time(seconds_int):
+    symbol = "-" if seconds_int < 0 else ""
+    seconds_int = abs(seconds_int)
+    minutes_total = seconds_int // 60
+    seconds_left = seconds_int % 60
+    hours_total = minutes_total // 60
+    minutes_left = minutes_total % 60
+
+    return f"{symbol}{int(hours_total)}:{str(int(minutes_left)).zfill(2)}:{str(int(seconds_left)).zfill(2)}"
 
 
 statuses = {"-3": "almost overdue",
@@ -201,6 +220,7 @@ hide_task_descriptions = bool(get_config_value("hide tasks destriptions"))
 
 debug_actions = ["dptf", "dpet", "dt", "configreset", "ccr", "cca", "ccp", "ccu", "cch",
                  "csr", "csa", "csp", "csu", "csh"]
+
 
 # endregion
 
@@ -313,7 +333,7 @@ def main():
                 print("hide deffered tasks")
         elif action == Actions.sn:
             if "1" in bad_statuses \
-            or "2" in bad_statuses:
+                    or "2" in bad_statuses:
                 bad_statuses.pop(bad_statuses.index("1"))
                 bad_statuses.pop(bad_statuses.index("2"))
                 set_config_value("hide not in progress tasks", False)
@@ -372,27 +392,183 @@ def main():
             selected_responsible = responsible.select(interactive_question="Выберите ответственного")
             set_config_value("default_responsible", selected_responsible["ID"])
         elif action == Actions.csa:
-            selected_auditor = auditors.select(interactive_question="Выберите наблюдателя")
-            set_config_value("default_auditor", selected_auditor["ID"])
+            selected_auditor = auditors.select(interactive_question="Выберите добавляемого наблюдателя")
+            auditors_current = get_config_value("default_auditor")
+
+            if not isinstance(auditors_current, list):
+                auditors_current = [auditors_current]
+                set_config_value("default_auditor", auditors_current)
+
+            if selected_auditor['ID'] not in auditors_current:
+                auditors_current.append(selected_auditor["ID"])
+
+            set_config_value("default_auditor", auditors_current)
         elif action == Actions.csp:
             selected_project = projects.select(interactive_question="Выберите проект")
             set_config_value("default_project", selected_project["ID"])
         elif action == Actions.csu:
             get_responsible_selected(reset=True)
-
         elif action == Actions.ccr:
             clear_config_value("default_responsible")
         elif action == Actions.cca:
-            clear_config_value("default_auditor")
+            auditors_current = get_config_value("default_auditor")
+            if not isinstance(auditors_current, list):
+                auditors_current = [auditors_current]
+                set_config_value("default_auditor", auditors_current)
+
+            auditors_current.remove(auditors.select(interactive_question="Выберите наблюдателя для удаления",
+                                                    highlighted_objects_ids=auditors_current)["ID"])
+
+            set_config_value("default_auditor", auditors_current)
+
+            if len(auditors_current) == 0:
+                clear_config_value("default_auditor")
         elif action == Actions.ccp:
             clear_config_value("default_project")
         elif action == Actions.cch:
             clear_config_value("hook_encrypted")
-            sys.exit(0)
+            OS.exit(0)
+        elif action == Actions.rtt:
+            date_today = Time.datetime()
+            result = b24.smart("task.elapseditem.getlist",
+                               {"ORDER":
+                                    {"ID": "DESC"},
+                                "FILTER":
+                                    {"USER_ID": get_config_value("responsible_to_filter_tasks"),
+                                     ">=CREATED_DATE": f"{date_today.year}-"
+                                                       f"{str(date_today.month).zfill(2)}-"
+                                                       f"{str(date_today.day).zfill(2)}"}
+                                },
+                               verbose=False,
+                               post=True)
+            seconds_total = 0
+
+            by_tasks = {}  # TODO: output by tasks
+
+            for time_entry in result:
+                task = get_object_with_caching("tasks.task.list", time_entry['TASK_ID'])
+                task_human_string = f'{task["title"]}'
+                user = get_object_with_caching("user.get", time_entry['USER_ID'])
+                user_human_string = f'{user["NAME"]} {user["LAST_NAME"]}'
+                comment = ""
+                if len(time_entry['COMMENT_TEXT'].strip()) > 0:
+                    comment = ", comment: " + time_entry['COMMENT_TEXT']
+                print(f"user: {user_human_string}, "
+                      f"task: {task_human_string}, "
+                      f"time: {seconds_to_human_time(int(time_entry['SECONDS']))}" +
+                      comment)
+                seconds_total += int(time_entry['SECONDS'])
+
+            # debug
+            print()
+            print(f"Total: {seconds_to_human_time(seconds_total)}")
+
+            current_time = Time.datetime()
+            rest_start = Time.datetime().replace(hour=12, minute=30, second=0, microsecond=0)
+            rest_end = Time.datetime().replace(hour=13, minute=30, second=0, microsecond=0)
+            if rest_start < current_time < rest_end:
+                current_time = rest_start
+
+            working_day_start = Time.datetime().replace(hour=8, minute=0, second=0, microsecond=0)
+            current_needed_time = Time.delta(current_time, working_day_start)
+            if current_time > rest_end:
+                current_needed_time -= Time.delta(rest_start, rest_end)
+
+            max_needed_time = Time.delta(working_day_start,
+                                         Time.datetime().replace(hour=17, minute=0, second=0, microsecond=0)) - \
+                              Time.delta(rest_start, rest_end)
+
+            if current_needed_time > max_needed_time:
+                current_needed_time = max_needed_time
+
+            print(f"Current needed time: {seconds_to_human_time(current_needed_time)}")
+
+            difference = seconds_to_human_time(seconds_total - current_needed_time)
+            symbol = "+" if seconds_total > current_needed_time else ""
+            color = "green" if seconds_total > current_needed_time else "red"
+            Print.colored(f"Difference: {symbol}{difference}", color)
+        elif action == Actions.rty:
+            import datetime
+            date_yesterday = Time.datetime() - datetime.timedelta(days=1)
+            date_today = Time.datetime()
+            result = b24.smart("task.elapseditem.getlist",
+                               {"ORDER":
+                                    {"ID": "DESC"},
+                                "FILTER":
+                                    {"USER_ID": get_config_value("responsible_to_filter_tasks"),
+                                     ">=CREATED_DATE": f"{date_yesterday.year}-"
+                                                       f"{str(date_yesterday.month).zfill(2)}-"
+                                                       f"{str(date_yesterday.day).zfill(2)}",
+                                     "<CREATED_DATE": f"{date_today.year}-"
+                                                      f"{str(date_today.month).zfill(2)}-"
+                                                      f"{str(date_today.day).zfill(2)}"
+                                     }
+                                },
+                               verbose=True,
+                               post=True)
+            seconds_total = 0
+
+            by_tasks = {}  # TODO: output by tasks
+
+            for time_entry in result:
+                task = get_object_with_caching("tasks.task.list", time_entry['TASK_ID'])
+                task_human_string = f'{task["title"]}'
+                user = get_object_with_caching("user.get", time_entry['USER_ID'])
+                user_human_string = f'{user["NAME"]} {user["LAST_NAME"]}'
+                comment = ""
+                if len(time_entry['COMMENT_TEXT'].strip()) > 0:
+                    comment = ", comment: " + time_entry['COMMENT_TEXT']
+                print(f"user: {user_human_string}, "
+                      f"task: {task_human_string}, "
+                      f"time: {seconds_to_human_time(int(time_entry['SECONDS']))}" +
+                      comment)
+                seconds_total += int(time_entry['SECONDS'])
+
+            # debug
+            print()
+            print(f"Total: {seconds_to_human_time(seconds_total)}")
+
+            working_day_start = Time.datetime().replace(hour=8, minute=0, second=0, microsecond=0)
+            working_day_end = Time.datetime().replace(hour=17, minute=0, second=0, microsecond=0)
+            rest_start = Time.datetime().replace(hour=12, minute=30, second=0, microsecond=0)
+            rest_end = Time.datetime().replace(hour=13, minute=30, second=0, microsecond=0)
+            current_needed_time = Time.delta(working_day_start, working_day_end) \
+                                  - Time.delta(rest_start, rest_end)
+            print(f"Needed time: {seconds_to_human_time(current_needed_time)}")
+
+            difference = seconds_to_human_time(seconds_total - current_needed_time)
+            symbol = "+" if seconds_total > current_needed_time else ""
+            color = "green" if seconds_total > current_needed_time else "red"
+            Print.colored(f"Difference: {symbol}{difference}", color)
         else:
             Print.colored("no action assigned to this action", "red")
     except KeyboardInterrupt:
         pass
+
+
+# cache TODO: move to top
+
+cache = {}
+
+
+def get_object_with_caching(call, id):
+    if call in cache:
+        if id in cache[call]:
+            # print("hit", call, id)
+            return cache[call][id]
+    else:
+        cache[call] = {}
+
+    arguments = {"filter": {"ID": id}}
+    result = b24.smart(call, arguments)[0]
+
+    cache[call][id] = result
+
+    # print("miss", call, id)
+    return result
+
+
+# cache END TODO: move to top
 
 if __name__ == "__main__":
     try:
@@ -401,6 +577,6 @@ if __name__ == "__main__":
         if CLI.get_y_n("Wrong password! Do you want to reset hook and password?"):
             clear_config_value("hook_encrypted")
         sys.exit(0)
-    
+
     while True:
         main()
