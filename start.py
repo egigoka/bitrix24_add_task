@@ -585,7 +585,7 @@ def main():
                 seconds_total += seconds
                 diff = seconds_total - seconds_needed
                 print(f"{date.strftime('%d.%m')} total: ", end="")
-                Print.colored(f"{seconds_to_human_time(seconds)}", "magenta", end = "")
+                Print.colored(f"{seconds_to_human_time(seconds)}", "magenta", end="")
                 Print.colored(f" {seconds_to_human_time(diff)}", "red" if diff < 0 else "green")
             print(f"GRAND TOTAL:  {seconds_to_human_time(seconds_total)}")
             print(f"total needed: {seconds_to_human_time(seconds_needed)}")

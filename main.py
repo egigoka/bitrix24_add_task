@@ -14,7 +14,7 @@ except ImportError:
     print("install dependency by typing:")
     print("pip3 install git+https://github.com/egigoka/commands")
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 
 # region development functions (temp)
@@ -36,10 +36,10 @@ def get_all_tasks_fields():
 
 config_path = "config.json"
 
-#minutes_fact_set_name = "UF_AUTO_677220304274"
-#minutes_fact_get_name = "ufAuto677220304274"
-#minutes_plan_set_name = "UF_AUTO_743543780336"
-#minutes_plan_get_name = "ufAuto743543780336"
+# minutes_fact_set_name = "UF_AUTO_677220304274"
+# minutes_fact_get_name = "ufAuto677220304274"
+# minutes_plan_set_name = "UF_AUTO_743543780336"
+# minutes_plan_get_name = "ufAuto743543780336"
 
 
 def get_config_value(key):
@@ -70,6 +70,7 @@ def __create_task(fields: dict):
                           post=True
                          )
 
+
 def create_task(title, created_by, responsible_id, project_id, description, auditors, additional_fields: dict,
                 is_it_important, deadline=None):
     fields = {"TITLE": title,
@@ -99,10 +100,19 @@ def create_task(title, created_by, responsible_id, project_id, description, audi
         result = __create_task(fields)
 
         # update task wit real responsible user
-        update_task(result["id"], {"RESPONSIBLE_ID": responsible_id_need_to_set})
+        # update_task(result["id"], {"RESPONSIBLE_ID": responsible_id_need_to_set})
+        delegate_task(task_id=result["id"], user_id=responsible_id_need_to_set)
         result["responsibleId"] = responsible_id_need_to_set
 
     return result
+
+
+def delegate_task(task_id, user_id):
+    return b24.smart("tasks.task.delegate",
+                     {
+                      "taskId": task_id,
+                      "userId": user_id
+                     })
 
 
 def update_task(task_id, fields: dict):

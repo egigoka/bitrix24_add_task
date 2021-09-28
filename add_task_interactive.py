@@ -89,8 +89,9 @@ def main():
     print()
 
     if CLI.get_y_n("It's okay?", "y"):
-        additional_fields = {minutes_plan_set_name: minutes_planned,
-                             minutes_fact_set_name: minutes_fact}
+        additional_fields = {#minutes_plan_set_name: minutes_planned,
+                             #minutes_fact_set_name: minutes_fact
+                            }
         task = create_task(title=title,
                            created_by=selected_created_by["ID"],
                            responsible_id=selected_responsible["ID"],
