@@ -20,6 +20,7 @@ class Actions(Enum):
 
     rtt = "report: today time by tasks"
     rty = "report: yesterday time by tasks"
+    rtm = "report: month time by tasks"
 
     w = "show working time"
     ws = "start|resume working time"
@@ -138,7 +139,7 @@ def print_all_tasks():
                               end="")
         if task['deadline'] is not None:
             Print.colored(format_time(task['deadline']), "red", end=" ", sep="")
-        Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end=' ')
+        # Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end=' ')
         Print.colored(f"{task['creator']['name']}", "green", end='')
         print()
         Print.colored(generate_url_to_task(task), "blue")
@@ -372,7 +373,8 @@ def main():
             minutes_fact_new = int(minutes_fact_before) + CLI.get_int(
                 f"Минут факт (добавится к {minutes_fact_before}): ")
 
-            update_task(selected_task['id'], {minutes_fact_set_name: minutes_fact_new})
+            raise NotImplementedError
+            # update_task(selected_task['id'], {minutes_fact_set_name: minutes_fact_new})
         elif action == Actions.tm:
             all_tasks = print_all_tasks()
             selected_task_int = CLI.get_int("Select task")
@@ -380,7 +382,8 @@ def main():
 
             minutes_fact = CLI.get_int("Минут факт (заменится на это значение): ")
 
-            update_task(selected_task['id'], {minutes_fact_set_name: minutes_fact})
+            raise NotImplementedError
+            # update_task(selected_task['id'], {minutes_fact_set_name: minutes_fact})
 
         elif action == Actions.configreset:
             File.delete(config_path)
@@ -540,6 +543,54 @@ def main():
             symbol = "+" if seconds_total > current_needed_time else ""
             color = "green" if seconds_total > current_needed_time else "red"
             Print.colored(f"Difference: {symbol}{difference}", color)
+        elif action == Actions.rtm:
+            import datetime
+            counter = 1
+            seconds_total = 0
+            seconds_needed = 0
+            while True:
+                date = Time.datetime().replace(day=counter)
+                date_end_filter = date + datetime.timedelta(days=1)
+                now = Time.datetime()
+                today_day = now.day
+
+                if date.day == today_day+1:
+                    break
+
+                if date.weekday() in range(5):
+                    seconds_needed += 8*60*60
+
+                counter += 1
+
+                result = b24.smart("task.elapseditem.getlist",
+                                   {"ORDER":
+                                        {"ID": "DESC"},
+                                    "FILTER":
+                                        {"USER_ID": get_config_value("responsible_to_filter_tasks"),
+                                         ">=CREATED_DATE": f"{date.year}-"
+                                                           f"{str(date.month).zfill(2)}-"
+                                                           f"{str(date.day).zfill(2)}",
+                                         "<CREATED_DATE": f"{date_end_filter.year}-"
+                                                          f"{str(date_end_filter.month).zfill(2)}-"
+                                                          f"{str(date_end_filter.day).zfill(2)}"
+                                         }
+                                    },
+                                   verbose=False,
+                                   post=True)
+                seconds = 0
+
+                for time_entry in result:
+                    seconds += int(time_entry['SECONDS'])
+
+                seconds_total += seconds
+                diff = seconds_total - seconds_needed
+                print(f"{date.strftime('%d.%m')} total: ", end="")
+                Print.colored(f"{seconds_to_human_time(seconds)}", "magenta", end = "")
+                Print.colored(f" {seconds_to_human_time(diff)}", "red" if diff < 0 else "green")
+            print(f"GRAND TOTAL:  {seconds_to_human_time(seconds_total)}")
+            print(f"total needed: {seconds_to_human_time(seconds_needed)}")
+            Print.colored(f"result:       {seconds_to_human_time(diff)}", "red" if diff < 0 else "green")
+
         else:
             Print.colored("no action assigned to this action", "red")
     except KeyboardInterrupt:

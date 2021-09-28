@@ -36,10 +36,10 @@ def get_all_tasks_fields():
 
 config_path = "config.json"
 
-minutes_fact_set_name = "UF_AUTO_677220304274"
-minutes_fact_get_name = "ufAuto677220304274"
-minutes_plan_set_name = "UF_AUTO_743543780336"
-minutes_plan_get_name = "ufAuto743543780336"
+#minutes_fact_set_name = "UF_AUTO_677220304274"
+#minutes_fact_get_name = "ufAuto677220304274"
+#minutes_plan_set_name = "UF_AUTO_743543780336"
+#minutes_plan_get_name = "ufAuto743543780336"
 
 
 def get_config_value(key):
