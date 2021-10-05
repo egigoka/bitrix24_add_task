@@ -38,11 +38,11 @@ class Actions(Enum):
 
     configreset = "delete this script config and setup all again"
     csr = "set default responsible"
-    csa = "add default auditor"
+    caa = "add default auditor"
     csp = "set default project"
     csu = "set user (whose tasks will be shown)"
     ccr = "clean default responsible"
-    cca = "remove default auditor"
+    cra = "remove default auditor"
     ccp = "clean default project"
     cch = "clear encrypted hook url"
 
@@ -217,8 +217,9 @@ if bool(get_config_value("hide not in progress tasks")):
 hide_not_important = bool(get_config_value("hide not important tasks"))
 hide_task_descriptions = bool(get_config_value("hide tasks destriptions"))
 
-debug_actions = ["dptf", "dpet", "dt", "configreset", "ccr", "cca", "ccp", "ccu", "cch",
-                 "csr", "csa", "csp", "csu", "csh"]
+debug_actions = ["dptf", "dpet", "dt", "configreset",
+                 "ccr", "cra", "ccp", "ccu", "cch",
+                 "csr", "caa", "csp", "csu", "csh"]
 
 
 # endregion
@@ -361,11 +362,18 @@ def main():
         elif action == Actions.t:
             print_all_tasks()
         elif action == Actions.tm:
-            raise NotImplementedError
             all_tasks = print_all_tasks()
-            print_working_time()
+            # print_working_time()
             selected_task_int = CLI.get_int("Select task")
             selected_task = all_tasks[selected_task_int]
+
+            print(f"Selected task: '{selected_task['title']}'")
+
+            minutes = CLI.get_int("How many minutes")
+            comment_text = input("Comment? ")
+
+            add_time_to_task(task_id=selected_task["id"], seconds=minutes*60,
+                             comment_text=comment_text)
 
         elif action == Actions.configreset:
             File.delete(config_path)
@@ -376,12 +384,15 @@ def main():
         elif action == Actions.csr:
             selected_responsible = responsible.select(interactive_question="Выберите ответственного")
             set_config_value("default_responsible", selected_responsible["ID"])
-        elif action == Actions.csa:
+        elif action == Actions.caa:
             selected_auditor = auditors.select(interactive_question="Выберите добавляемого наблюдателя")
             auditors_current = get_config_value("default_auditor")
 
-            if not isinstance(auditors_current, list):
+            if isinstance(auditors_current, str):
                 auditors_current = [auditors_current]
+                set_config_value("default_auditor", auditors_current)
+            elif auditors_current is None:
+                auditors_current = []
                 set_config_value("default_auditor", auditors_current)
 
             if selected_auditor['ID'] not in auditors_current:
@@ -395,19 +406,27 @@ def main():
             get_responsible_selected(reset=True)
         elif action == Actions.ccr:
             clear_config_value("default_responsible")
-        elif action == Actions.cca:
+        elif action == Actions.cra:
             auditors_current = get_config_value("default_auditor")
-            if not isinstance(auditors_current, list):
+            if isinstance(auditors_current, str):
                 auditors_current = [auditors_current]
                 set_config_value("default_auditor", auditors_current)
+            elif auditors_current is None:
+                auditors_current = []
+                set_config_value("default_auditor", auditors_current)
 
-            auditors_current.remove(auditors.select(interactive_question="Выберите наблюдателя для удаления",
-                                                    highlighted_objects_ids=auditors_current)["ID"])
+            if len(auditors_current) != 0:
+                try:
+                    auditors_current.remove(auditors.select(interactive_question="Выберите наблюдателя для удаления",
+                                                            highlighted_objects_ids=auditors_current)["ID"])
+                except ValueError:
+                    pass
+                set_config_value("default_auditor", auditors_current)
 
-            set_config_value("default_auditor", auditors_current)
-
-            if len(auditors_current) == 0:
-                clear_config_value("default_auditor")
+                if len(auditors_current) == 0:
+                    set_config_value("default_auditor", [])
+            else:
+                print("nothing to remove")
         elif action == Actions.ccp:
             clear_config_value("default_project")
         elif action == Actions.cch:

@@ -75,7 +75,9 @@ def create_task(title, created_by, responsible_id, project_id, description, audi
               "GROUP_ID": project_id,
               "AUDITORS": auditors,
               "PRIORITY": "2" if is_it_important else "1",
-              "DEADLINE": "" if deadline is None else datetime_to_bitrix_time(deadline)
+              "DEADLINE": "" if deadline is None else datetime_to_bitrix_time(deadline),
+              "ALLOW_TIME_TRACKING": "Y",
+              "MATCH_WORK_TIME": "N"
               }
     fields.update(additional_fields)
 
@@ -100,6 +102,18 @@ def create_task(title, created_by, responsible_id, project_id, description, audi
         result["responsibleId"] = responsible_id_need_to_set
 
     return result
+
+
+def add_time_to_task(task_id, seconds, comment_text="", created_date=None,
+                     user_id=None):
+    parameters = {"SECONDS": seconds,
+                  "COMMENT_TEXT": comment_text}
+    if created_date is not None:
+        parameters["CREATED_DATE"] = bitrix_time_to_datetime(created_date)
+    if user_id is not None:
+        parameters["USER_ID"] = user_id
+    return b24.post("task.elapseditem.add",
+                    [task_id, parameters])
 
 
 def delegate_task(task_id, user_id):
