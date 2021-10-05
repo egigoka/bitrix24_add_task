@@ -27,10 +27,6 @@ def main():
 
     description = CLI.multiline_input("Описание задачи: ").strip()
 
-    minutes_planned = CLI.get_int("Минут план: ")
-
-    minutes_fact = CLI.get_int("Минут факт: ")
-
     is_it_important = CLI.get_y_n("Это важная задача", "n")
 
     while True:
@@ -82,16 +78,12 @@ def main():
               f"{selected_auditor['NAME']}")
     print(f"selected project: {selected_project['ID']} {selected_project['NAME']}")
     Print.colored(f"important: {is_it_important}", "red" if is_it_important else "")
-    print(f"minutes planned: {minutes_planned}")
-    print(f"minutes fact: {minutes_fact}")
     if deadline is not None:
         Print.colored(f"deadline: {datetime_to_bitrix_time(deadline)}", "red")
     print()
 
     if CLI.get_y_n("It's okay?", "y"):
-        additional_fields = {#minutes_plan_set_name: minutes_planned,
-                             #minutes_fact_set_name: minutes_fact
-                            }
+        additional_fields = {}
         task = create_task(title=title,
                            created_by=selected_created_by["ID"],
                            responsible_id=selected_responsible["ID"],

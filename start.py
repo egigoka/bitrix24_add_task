@@ -15,8 +15,7 @@ class Actions(Enum):
     tr = "resume deferred or closed task"
     tc = "close task"
 
-    tma = "task fact minutes add"
-    tm = "task set fact minutes"
+    tm = "task time spent add"
 
     rtt = "report: today time by tasks"
     rty = "report: yesterday time by tasks"
@@ -139,7 +138,6 @@ def print_all_tasks():
                               end="")
         if task['deadline'] is not None:
             Print.colored(format_time(task['deadline']), "red", end=" ", sep="")
-        # Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end=' ')
         Print.colored(f"{task['creator']['name']}", "green", end='')
         print()
         Print.colored(generate_url_to_task(task), "blue")
@@ -362,28 +360,12 @@ def main():
             add_task_interactive.main()
         elif action == Actions.t:
             print_all_tasks()
-        elif action == Actions.tma:
+        elif action == Actions.tm:
+            raise NotImplementedError
             all_tasks = print_all_tasks()
             print_working_time()
             selected_task_int = CLI.get_int("Select task")
             selected_task = all_tasks[selected_task_int]
-
-            minutes_fact_before = selected_task[minutes_fact_get_name]
-
-            minutes_fact_new = int(minutes_fact_before) + CLI.get_int(
-                f"Минут факт (добавится к {minutes_fact_before}): ")
-
-            raise NotImplementedError
-            # update_task(selected_task['id'], {minutes_fact_set_name: minutes_fact_new})
-        elif action == Actions.tm:
-            all_tasks = print_all_tasks()
-            selected_task_int = CLI.get_int("Select task")
-            selected_task = all_tasks[selected_task_int]
-
-            minutes_fact = CLI.get_int("Минут факт (заменится на это значение): ")
-
-            raise NotImplementedError
-            # update_task(selected_task['id'], {minutes_fact_set_name: minutes_fact})
 
         elif action == Actions.configreset:
             File.delete(config_path)
