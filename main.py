@@ -77,7 +77,8 @@ def create_task(title, created_by, responsible_id, project_id, description, audi
               "PRIORITY": "2" if is_it_important else "1",
               "DEADLINE": "" if deadline is None else datetime_to_bitrix_time(deadline),
               "ALLOW_TIME_TRACKING": "Y",
-              "MATCH_WORK_TIME": "N"
+              "MATCH_WORK_TIME": "N",
+              "TASK_CONTROL": "Y"
               }
     fields.update(additional_fields)
 
