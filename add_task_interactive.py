@@ -10,7 +10,8 @@ def main():
                                               interactive_question="Выберите ответственного")
 
     if isinstance(get_config_value("default_auditor"), str):
-        selected_auditor = auditors.select(get_config_value("default_auditor"))
+        selected_auditor = auditors.select(get_config_value("default_auditor"),
+                                           interactive_question="Выберите наблюдателя (ыыы)")
         selected_auditors = [selected_auditor]
     elif isinstance(get_config_value('default_auditor'), list):
         selected_auditors = []
@@ -26,10 +27,6 @@ def main():
         title = input("Название задачи: ").strip()
 
     description = CLI.multiline_input("Описание задачи: ").strip()
-
-    minutes_planned = CLI.get_int("Минут план: ")
-
-    minutes_fact = CLI.get_int("Минут факт: ")
 
     is_it_important = CLI.get_y_n("Это важная задача", "n")
 
@@ -82,15 +79,12 @@ def main():
               f"{selected_auditor['NAME']}")
     print(f"selected project: {selected_project['ID']} {selected_project['NAME']}")
     Print.colored(f"important: {is_it_important}", "red" if is_it_important else "")
-    print(f"minutes planned: {minutes_planned}")
-    print(f"minutes fact: {minutes_fact}")
     if deadline is not None:
         Print.colored(f"deadline: {datetime_to_bitrix_time(deadline)}", "red")
     print()
 
     if CLI.get_y_n("It's okay?", "y"):
-        additional_fields = {minutes_plan_set_name: minutes_planned,
-                             minutes_fact_set_name: minutes_fact}
+        additional_fields = {}
         task = create_task(title=title,
                            created_by=selected_created_by["ID"],
                            responsible_id=selected_responsible["ID"],
@@ -112,6 +106,11 @@ def main():
         elif CLI.get_y_n("Начать задачу?", "n"):
             start_task(task_id)
             change_task_stage(task, 'Выполняются')
+
+        add_minutes = input("Добавить сразу времени? (мин) ").strip()
+        if add_minutes.isnumeric():
+            add_minutes = int(add_minutes)
+            add_time_to_task(task_id=task_id, seconds=add_minutes*60)
 
 
 if __name__ == '__main__':

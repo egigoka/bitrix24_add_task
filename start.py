@@ -15,11 +15,11 @@ class Actions(Enum):
     tr = "resume deferred or closed task"
     tc = "close task"
 
-    tma = "task fact minutes add"
-    tm = "task set fact minutes"
+    tm = "task time spent add"
 
     rtt = "report: today time by tasks"
     rty = "report: yesterday time by tasks"
+    rtm = "report: month time by tasks"
 
     w = "show working time"
     ws = "start|resume working time"
@@ -38,11 +38,11 @@ class Actions(Enum):
 
     configreset = "delete this script config and setup all again"
     csr = "set default responsible"
-    csa = "add default auditor"
+    caa = "add default auditor"
     csp = "set default project"
     csu = "set user (whose tasks will be shown)"
     ccr = "clean default responsible"
-    cca = "remove default auditor"
+    cra = "remove default auditor"
     ccp = "clean default project"
     cch = "clear encrypted hook url"
 
@@ -138,7 +138,6 @@ def print_all_tasks():
                               end="")
         if task['deadline'] is not None:
             Print.colored(format_time(task['deadline']), "red", end=" ", sep="")
-        Print.colored(f"{task[minutes_fact_get_name]} of {task[minutes_plan_get_name]}", "magenta", end=' ')
         Print.colored(f"{task['creator']['name']}", "green", end='')
         print()
         Print.colored(generate_url_to_task(task), "blue")
@@ -218,8 +217,9 @@ if bool(get_config_value("hide not in progress tasks")):
 hide_not_important = bool(get_config_value("hide not important tasks"))
 hide_task_descriptions = bool(get_config_value("hide tasks destriptions"))
 
-debug_actions = ["dptf", "dpet", "dt", "configreset", "ccr", "cca", "ccp", "ccu", "cch",
-                 "csr", "csa", "csp", "csu", "csh"]
+debug_actions = ["dptf", "dpet", "dt", "configreset",
+                 "ccr", "cra", "ccp", "ccu", "cch",
+                 "csr", "caa", "csp", "csu", "csh"]
 
 
 # endregion
@@ -361,26 +361,19 @@ def main():
             add_task_interactive.main()
         elif action == Actions.t:
             print_all_tasks()
-        elif action == Actions.tma:
-            all_tasks = print_all_tasks()
-            print_working_time()
-            selected_task_int = CLI.get_int("Select task")
-            selected_task = all_tasks[selected_task_int]
-
-            minutes_fact_before = selected_task[minutes_fact_get_name]
-
-            minutes_fact_new = int(minutes_fact_before) + CLI.get_int(
-                f"Минут факт (добавится к {minutes_fact_before}): ")
-
-            update_task(selected_task['id'], {minutes_fact_set_name: minutes_fact_new})
         elif action == Actions.tm:
             all_tasks = print_all_tasks()
+            # print_working_time()
             selected_task_int = CLI.get_int("Select task")
             selected_task = all_tasks[selected_task_int]
 
-            minutes_fact = CLI.get_int("Минут факт (заменится на это значение): ")
+            print(f"Selected task: '{selected_task['title']}'")
 
-            update_task(selected_task['id'], {minutes_fact_set_name: minutes_fact})
+            minutes = CLI.get_int("How many minutes")
+            comment_text = input("Comment? ")
+
+            add_time_to_task(task_id=selected_task["id"], seconds=minutes*60,
+                             comment_text=comment_text)
 
         elif action == Actions.configreset:
             File.delete(config_path)
@@ -391,12 +384,15 @@ def main():
         elif action == Actions.csr:
             selected_responsible = responsible.select(interactive_question="Выберите ответственного")
             set_config_value("default_responsible", selected_responsible["ID"])
-        elif action == Actions.csa:
+        elif action == Actions.caa:
             selected_auditor = auditors.select(interactive_question="Выберите добавляемого наблюдателя")
             auditors_current = get_config_value("default_auditor")
 
-            if not isinstance(auditors_current, list):
+            if isinstance(auditors_current, str):
                 auditors_current = [auditors_current]
+                set_config_value("default_auditor", auditors_current)
+            elif auditors_current is None:
+                auditors_current = []
                 set_config_value("default_auditor", auditors_current)
 
             if selected_auditor['ID'] not in auditors_current:
@@ -410,19 +406,27 @@ def main():
             get_responsible_selected(reset=True)
         elif action == Actions.ccr:
             clear_config_value("default_responsible")
-        elif action == Actions.cca:
+        elif action == Actions.cra:
             auditors_current = get_config_value("default_auditor")
-            if not isinstance(auditors_current, list):
+            if isinstance(auditors_current, str):
                 auditors_current = [auditors_current]
                 set_config_value("default_auditor", auditors_current)
+            elif auditors_current is None:
+                auditors_current = []
+                set_config_value("default_auditor", auditors_current)
 
-            auditors_current.remove(auditors.select(interactive_question="Выберите наблюдателя для удаления",
-                                                    highlighted_objects_ids=auditors_current)["ID"])
+            if len(auditors_current) != 0:
+                try:
+                    auditors_current.remove(auditors.select(interactive_question="Выберите наблюдателя для удаления",
+                                                            highlighted_objects_ids=auditors_current)["ID"])
+                except ValueError:
+                    pass
+                set_config_value("default_auditor", auditors_current)
 
-            set_config_value("default_auditor", auditors_current)
-
-            if len(auditors_current) == 0:
-                clear_config_value("default_auditor")
+                if len(auditors_current) == 0:
+                    set_config_value("default_auditor", [])
+            else:
+                print("nothing to remove")
         elif action == Actions.ccp:
             clear_config_value("default_project")
         elif action == Actions.cch:
@@ -540,6 +544,54 @@ def main():
             symbol = "+" if seconds_total > current_needed_time else ""
             color = "green" if seconds_total > current_needed_time else "red"
             Print.colored(f"Difference: {symbol}{difference}", color)
+        elif action == Actions.rtm:
+            import datetime
+            counter = 1
+            seconds_total = 0
+            seconds_needed = 0
+            while True:
+                date = Time.datetime().replace(day=counter)
+                date_end_filter = date + datetime.timedelta(days=1)
+                now = Time.datetime()
+                today_day = now.day
+
+                if date.day == today_day+1:
+                    break
+
+                if date.weekday() in range(5):
+                    seconds_needed += 8*60*60
+
+                counter += 1
+
+                result = b24.smart("task.elapseditem.getlist",
+                                   {"ORDER":
+                                        {"ID": "DESC"},
+                                    "FILTER":
+                                        {"USER_ID": get_config_value("responsible_to_filter_tasks"),
+                                         ">=CREATED_DATE": f"{date.year}-"
+                                                           f"{str(date.month).zfill(2)}-"
+                                                           f"{str(date.day).zfill(2)}",
+                                         "<CREATED_DATE": f"{date_end_filter.year}-"
+                                                          f"{str(date_end_filter.month).zfill(2)}-"
+                                                          f"{str(date_end_filter.day).zfill(2)}"
+                                         }
+                                    },
+                                   verbose=False,
+                                   post=True)
+                seconds = 0
+
+                for time_entry in result:
+                    seconds += int(time_entry['SECONDS'])
+
+                seconds_total += seconds
+                diff = seconds_total - seconds_needed
+                print(f"{date.strftime('%d.%m')} total: ", end="")
+                Print.colored(f"{seconds_to_human_time(seconds)}", "magenta", end="")
+                Print.colored(f" {seconds_to_human_time(diff)}", "red" if diff < 0 else "green")
+            print(f"GRAND TOTAL:  {seconds_to_human_time(seconds_total)}")
+            print(f"total needed: {seconds_to_human_time(seconds_needed)}")
+            Print.colored(f"result:       {seconds_to_human_time(diff)}", "red" if diff < 0 else "green")
+
         else:
             Print.colored("no action assigned to this action", "red")
     except KeyboardInterrupt:
