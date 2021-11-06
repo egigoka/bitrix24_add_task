@@ -28,6 +28,13 @@ def main():
 
     description = CLI.multiline_input("Описание задачи: ").strip()
 
+    i = 0
+    while '\n\n' in description:
+        description = description.replace('\n\n', '\n')
+        print(description)
+        i += 1
+        print(i)
+
     is_it_important = CLI.get_y_n("Это важная задача", "n")
 
     while True:
@@ -104,7 +111,11 @@ def main():
             complete_task(task_id)
 
         elif CLI.get_y_n("Начать задачу?", "n"):
-            start_task(task_id)
+            try:
+                start_task(task_id)
+            except KeyError:
+                pass
+            
             change_task_stage(task, 'Выполняются')
 
         add_minutes = input("Добавить сразу времени? (мин) ").strip()
