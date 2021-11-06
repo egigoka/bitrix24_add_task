@@ -66,7 +66,7 @@ def get_all_tasks(filters_enabled=True):
                    "!REAL_STATUS": bad_statuses, }
         if hide_not_important:
             filter_["PRIORITY"] = [2]
-    verbose = False
+    verbose = True
     tasks = b24.smart("tasks.task.list",
                       {"filter": filter_,
                        # "order":
