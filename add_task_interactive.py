@@ -38,35 +38,11 @@ def main():
     is_it_important = CLI.get_y_n("Это важная задача", "n")
 
     while True:
-        deadline = None
-        deadline_str = input(f"День дедлайна \"{str(Time.datetime().day).zfill(2)}\" "
-                             f"или с месяцем \"{str(Time.datetime().day).zfill(2)}"
-                                             f"{str(Time.datetime().month).zfill(2)}\" "
-                             f"или с годом \"{str(Time.datetime().day).zfill(2)}"
-                                           f"{str(Time.datetime().month).zfill(2)}"
-                                           f"{str(Time.datetime().year).zfill(4)}\": ").strip()
-        if deadline_str:
-            deadline = Time.datetime()
-            try:
-                day = int(deadline_str[:2])
-            except ValueError:
-                day = deadline.day
-            try:
-                month = int(deadline_str[2:4])
-            except ValueError:
-                month = deadline.month
-            try:
-                year = int(deadline_str[4:])
-            except ValueError:
-                year = deadline.year
-            try:
-                deadline = deadline.replace(day=day, month=month, year=year, hour=19, minute=0, second=0)
-            except ValueError as e:
-                print(e)
-                continue
+        deadline = CLI.get_date("deadline", always_return_date=False)
         if deadline is None:
             break
-        if deadline < Time.datetime().replace(hour=23, minute=59, second=59):
+        deadline.replace(hour=19, minute=0, second=0)
+        if deadline < Time.datetime(hour=23, minute=59, second=59):
             if CLI.get_y_n("Do you really wanna set deadline in past", "n"):
                 break
             else:

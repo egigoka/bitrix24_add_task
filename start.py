@@ -32,6 +32,8 @@ class Actions(Enum):
     sde = "show|hide description of tasks"
     sdb = "show|hide config and debug options"
 
+    ha = "holiday add"
+
     dptf = "debug: print all tasks fields"
     dpet = "debug: get elapsed time of task"
     dt = "debug: print raw tasks"
@@ -66,13 +68,9 @@ def get_all_tasks(filters_enabled=True):
                    "!REAL_STATUS": bad_statuses, }
         if hide_not_important:
             filter_["PRIORITY"] = [2]
-    verbose = True
+    verbose = False
     tasks = b24.smart("tasks.task.list",
                       {"filter": filter_,
-                       # "order":
-                       #    {# "REAL_STATUS": "DESC",
-                       #        "DEADLINE": "DESC"
-                       #     },
                        "select": list(get_all_tasks_fields().keys())
                        }
                       , verbose=verbose)
@@ -197,6 +195,15 @@ def seconds_to_human_time(seconds_int):
     minutes_left = minutes_total % 60
 
     return f"{symbol}{int(hours_total)}:{str(int(minutes_left)).zfill(2)}:{str(int(seconds_left)).zfill(2)}"
+
+
+def string_to_date(string):
+    import datetime
+    return datetime.datetime.strptime(string, "%d.%m.%Y")
+
+
+def date_to_string(date):
+    return date.strftime("%d.%m.%Y")
 
 
 statuses = {"-3": "almost overdue",
@@ -447,20 +454,33 @@ def main():
                                post=True)
             seconds_total = 0
 
-            by_tasks = {}  # TODO: output by tasks
+            today_tasks = {}
 
             for time_entry in result:
+                task_id = time_entry['TASK_ID']
+                if task_id in today_tasks:
+                    today_tasks[task_id]['SECONDS'] = int(today_tasks[task_id]['SECONDS']) + int(time_entry['SECONDS'])
+                    if today_tasks[task_id]['COMMENT_TEXT'] != "":
+                        today_tasks['COMMENT_TEXT'] += "|||"
+                    today_tasks[task_id]['COMMENT_TEXT'] += time_entry['COMMENT_TEXT']
+                else:
+                    today_tasks[task_id] = time_entry
+                # print(seconds_to_human_time(int(time_entry['SECONDS'])), time_entry['TASK_ID'])
+
+            today_tasks = List.sort_by(list(today_tasks.values()), 'SECONDS', cast_to=int)
+
+            for time_entry in today_tasks:
                 task = get_object_with_caching("tasks.task.list", time_entry['TASK_ID'])
                 task_human_string = f'{task["title"]}'
-                user = get_object_with_caching("user.get", time_entry['USER_ID'])
-                user_human_string = f'{user["NAME"]} {user["LAST_NAME"]}'
+                # user = get_object_with_caching("user.get", time_entry['USER_ID'])
+                # user_human_string = f'{user["NAME"]} {user["LAST_NAME"]}'
                 comment = ""
                 if len(time_entry['COMMENT_TEXT'].strip()) > 0:
                     comment = ", comment: " + time_entry['COMMENT_TEXT']
-                print(f"user: {user_human_string}, "
-                      f"task: {task_human_string}, "
-                      f"time: {seconds_to_human_time(int(time_entry['SECONDS']))}" +
-                      comment)
+                seconds_human = seconds_to_human_time(int(time_entry['SECONDS']))
+                seconds_human = Print.colored(seconds_human, "green", verbose=False)
+                print(f"{seconds_human} {task_human_string}{comment}")
+                Print.colored(generate_url_to_task(task), "blue")
                 seconds_total += int(time_entry['SECONDS'])
 
             # debug
@@ -508,24 +528,36 @@ def main():
                                                       f"{str(date_today.day).zfill(2)}"
                                      }
                                 },
-                               verbose=True,
+                               verbose=False,
                                post=True)
             seconds_total = 0
 
-            by_tasks = {}  # TODO: output by tasks
+            today_tasks = {}
 
             for time_entry in result:
+                task_id = time_entry['TASK_ID']
+                if task_id in today_tasks:
+                    today_tasks[task_id]['SECONDS'] = int(today_tasks[task_id]['SECONDS']) + int(time_entry['SECONDS'])
+                    if today_tasks[task_id]['COMMENT_TEXT'] != "":
+                        today_tasks['COMMENT_TEXT'] += "|||"
+                    today_tasks[task_id]['COMMENT_TEXT'] += time_entry['COMMENT_TEXT']
+                else:
+                    today_tasks[task_id] = time_entry
+
+            today_tasks = List.sort_by(list(today_tasks.values()), 'SECONDS', cast_to=int)
+
+            for time_entry in today_tasks:
                 task = get_object_with_caching("tasks.task.list", time_entry['TASK_ID'])
                 task_human_string = f'{task["title"]}'
-                user = get_object_with_caching("user.get", time_entry['USER_ID'])
-                user_human_string = f'{user["NAME"]} {user["LAST_NAME"]}'
+                # user = get_object_with_caching("user.get", time_entry['USER_ID'])
+                # user_human_string = f'{user["NAME"]} {user["LAST_NAME"]}'
                 comment = ""
                 if len(time_entry['COMMENT_TEXT'].strip()) > 0:
                     comment = ", comment: " + time_entry['COMMENT_TEXT']
-                print(f"user: {user_human_string}, "
-                      f"task: {task_human_string}, "
-                      f"time: {seconds_to_human_time(int(time_entry['SECONDS']))}" +
-                      comment)
+                seconds_human = seconds_to_human_time(int(time_entry['SECONDS']))
+                seconds_human = Print.colored(seconds_human, "green", verbose=False)
+                print(f"{seconds_human} {task_human_string}{comment}")
+                Print.colored(generate_url_to_task(task), "blue")
                 seconds_total += int(time_entry['SECONDS'])
 
             # debug
@@ -550,7 +582,10 @@ def main():
             seconds_total = 0
             seconds_needed = 0
             while True:
-                date = Time.datetime().replace(day=counter)
+                try:
+                    date = Time.datetime().replace(day=counter)
+                except ValueError:
+                    break
                 date_end_filter = date + datetime.timedelta(days=1)
                 now = Time.datetime()
                 today_day = now.day
@@ -558,7 +593,14 @@ def main():
                 if date.day == today_day+1:
                     break
 
-                if date.weekday() in range(5):
+                holidays = get_config_value("holidays")
+                if not isinstance(holidays, dict):
+                    holidays = {}
+                    set_config_value("holidays", holidays)
+
+                if date_to_string(date) in holidays.keys():
+                    seconds_needed += holidays[date_to_string(date)] * 60 * 60
+                elif date.weekday() in range(5):
                     seconds_needed += 8*60*60
 
                 counter += 1
@@ -591,6 +633,19 @@ def main():
             print(f"GRAND TOTAL:  {seconds_to_human_time(seconds_total)}")
             print(f"total needed: {seconds_to_human_time(seconds_needed)}")
             Print.colored(f"result:       {seconds_to_human_time(diff)}", "red" if diff < 0 else "green")
+        elif action == Actions.ha:
+            holidays = get_config_value("holidays")
+            if not isinstance(holidays, dict):
+                holidays = {}
+                set_config_value("holidays", holidays)
+
+            date = CLI.get_date("", always_return_date=False)
+
+            if date is not None:
+                date_str = date_to_string(date)
+                holidays[date_str] = CLI.get_int("How many hours?")
+                set_config_value("holidays", holidays)
+
 
         else:
             Print.colored("no action assigned to this action", "red")
