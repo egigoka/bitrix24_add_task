@@ -461,7 +461,7 @@ def main():
                 if task_id in today_tasks:
                     today_tasks[task_id]['SECONDS'] = int(today_tasks[task_id]['SECONDS']) + int(time_entry['SECONDS'])
                     if today_tasks[task_id]['COMMENT_TEXT'] != "":
-                        today_tasks['COMMENT_TEXT'] += "|||"
+                        today_tasks[task_id]['COMMENT_TEXT'] += "|||"
                     today_tasks[task_id]['COMMENT_TEXT'] += time_entry['COMMENT_TEXT']
                 else:
                     today_tasks[task_id] = time_entry

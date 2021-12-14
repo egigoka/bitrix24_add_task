@@ -1,3 +1,4 @@
+import datetime
 import pprint
 
 from main import *
@@ -41,9 +42,17 @@ def main():
         deadline = CLI.get_date("deadline", always_return_date=False)
         if deadline is None:
             break
-        deadline.replace(hour=19, minute=0, second=0)
-        if deadline < Time.datetime(hour=23, minute=59, second=59):
-            if CLI.get_y_n("Do you really wanna set deadline in past", "n"):
+
+        deadline = deadline.replace(hour=19, minute=0, second=0)
+
+        message = ""
+        if deadline < Time.datetime():
+            message = "in past"
+        elif deadline < Time.datetime(hour=23, minute=59, second=59):
+            message = "today"
+
+        if message:
+            if CLI.get_y_n(f"Do you really wanna set deadline {message}", "n"):
                 break
             else:
                 continue
