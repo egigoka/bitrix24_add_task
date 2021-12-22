@@ -125,7 +125,7 @@ def print_all_tasks():
 
     in_progress = 0
 
-    print("*" * Console.width())
+    print("_" * Console.width())
     for cnt, task in enumerate(all_tasks):
         print(f"[{cnt}]", end=" ")
         Print.colored(statuses[task['subStatus']], "green", end=" ")
@@ -143,7 +143,7 @@ def print_all_tasks():
             if task['description']:
                 print("описание:")
                 print(html_deescape(task['description']))
-        print("*" * Console.width())
+        print("_" * Console.width())
 
     print("total:", len(all_tasks))
     return all_tasks
@@ -539,7 +539,7 @@ def main():
                 if task_id in today_tasks:
                     today_tasks[task_id]['SECONDS'] = int(today_tasks[task_id]['SECONDS']) + int(time_entry['SECONDS'])
                     if today_tasks[task_id]['COMMENT_TEXT'] != "":
-                        today_tasks['COMMENT_TEXT'] += "|||"
+                        today_tasks[task_id]['COMMENT_TEXT'] += "; "
                     today_tasks[task_id]['COMMENT_TEXT'] += time_entry['COMMENT_TEXT']
                 else:
                     today_tasks[task_id] = time_entry
