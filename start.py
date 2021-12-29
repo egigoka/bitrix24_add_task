@@ -282,7 +282,10 @@ def main():
             selected_task = all_tasks[selected_task_int]
             # start task time
             # change task status to 3 (in progress)
-            start_task(selected_task['id'])
+            try:
+                start_task(selected_task['id'])
+            except KeyError:
+                pass
             # move task to "Выполняется"
             change_task_stage(selected_task, 'Выполняются')
         elif action == Actions.dpet:
