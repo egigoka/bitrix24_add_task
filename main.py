@@ -14,7 +14,11 @@ except ImportError:
     print("install dependency by typing:")
     print("pip3 install git+https://github.com/egigoka/commands")
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
+
+
+class ItemNotExist:
+    pass
 
 
 # region development functions (temp)

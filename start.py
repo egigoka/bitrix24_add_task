@@ -474,16 +474,20 @@ def main():
 
             for time_entry in today_tasks:
                 task = get_object_with_caching("tasks.task.list", time_entry['TASK_ID'])
-                task_human_string = f'{task["title"]}'
-                # user = get_object_with_caching("user.get", time_entry['USER_ID'])
-                # user_human_string = f'{user["NAME"]} {user["LAST_NAME"]}'
+                if task is ItemNotExist:
+                    task_human_string = Print.colored(f"[task {time_entry['TASK_ID']} doesn't exist]", "red", verbose=False)
+                    task_url = ""
+                else:
+                    task_human_string = f'{task["title"]}'
+                    task_url = generate_url_to_task(task)
                 comment = ""
                 if len(time_entry['COMMENT_TEXT'].strip()) > 0:
                     comment = ", comment: " + time_entry['COMMENT_TEXT']
                 seconds_human = seconds_to_human_time(int(time_entry['SECONDS']))
                 seconds_human = Print.colored(seconds_human, "green", verbose=False)
                 print(f"{seconds_human} {task_human_string}{comment}")
-                Print.colored(generate_url_to_task(task), "blue")
+                if task_url:
+                    Print.colored(task_url, "blue")
                 seconds_total += int(time_entry['SECONDS'])
 
             # debug
@@ -551,16 +555,20 @@ def main():
 
             for time_entry in today_tasks:
                 task = get_object_with_caching("tasks.task.list", time_entry['TASK_ID'])
-                task_human_string = f'{task["title"]}'
-                # user = get_object_with_caching("user.get", time_entry['USER_ID'])
-                # user_human_string = f'{user["NAME"]} {user["LAST_NAME"]}'
+                if task is ItemNotExist:
+                    task_human_string = Print.colored(f"[task {time_entry['TASK_ID']} doesn't exist]", "red", verbose=False)
+                    task_url = ""
+                else:
+                    task_human_string = f'{task["title"]}'
+                    task_url = generate_url_to_task(task)
                 comment = ""
                 if len(time_entry['COMMENT_TEXT'].strip()) > 0:
                     comment = ", comment: " + time_entry['COMMENT_TEXT']
                 seconds_human = seconds_to_human_time(int(time_entry['SECONDS']))
                 seconds_human = Print.colored(seconds_human, "green", verbose=False)
                 print(f"{seconds_human} {task_human_string}{comment}")
-                Print.colored(generate_url_to_task(task), "blue")
+                if task_url:
+                    Print.colored(task_url, "blue")
                 seconds_total += int(time_entry['SECONDS'])
 
             # debug
@@ -670,7 +678,11 @@ def get_object_with_caching(call, id):
         cache[call] = {}
 
     arguments = {"filter": {"ID": id}}
-    result = b24.smart(call, arguments)[0]
+    result = b24.smart(call, arguments)
+    if result:
+        result = result[0]
+    else:
+        result = ItemNotExist
 
     cache[call][id] = result
 

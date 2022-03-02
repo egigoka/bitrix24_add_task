@@ -88,7 +88,7 @@ def main():
                            deadline=deadline)
         task_id = task['id']
 
-        print(generate_url_to_task(task))
+        Print.colored(generate_url_to_task(task), "blue")
 
         add_multiple_comments_to_task_interactive(task_id)
 
